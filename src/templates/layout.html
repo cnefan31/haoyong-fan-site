@@ -79,20 +79,20 @@
       </a>
     </nav>
 
-    <!-- Bottom: GitHub + toggle -->
-    <div class="sidebar-bottom">
-      <a href="https://github.com/" class="sidebar-item" data-page="github" title="GitHub" target="_blank">
-        <svg class="sidebar-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M10 0C4.48 0 0 4.48 0 10c0 4.42 2.87 8.17 6.84 9.5.5.09.68-.22.68-.48 0-.24-.01-.88-.01-1.73-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02.8-.22 1.65-.33 2.5-.33.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85 0 1.34-.01 2.41-.01 2.74 0 .27.18.58.69.48A10.01 10.01 0 0 0 20 10c0-5.52-4.48-10-10-10z"/>
-        </svg>
-        <span class="sidebar-label">GitHub</span>
-      </a>
-      <button class="sidebar-toggle" onclick="App.toggleSidebar()" title="Toggle sidebar" id="sidebarToggle">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" id="toggleIcon">
-          <path d="M9 2L3 7l6 5V2z" fill="currentColor"/>
-        </svg>
-      </button>
-    </div>
+    <!-- GitHub -->
+    <a href="https://github.com/" class="sidebar-item sidebar-github" data-page="github" title="GitHub" target="_blank">
+      <svg class="sidebar-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M10 0C4.48 0 0 4.48 0 10c0 4.42 2.87 8.17 6.84 9.5.5.09.68-.22.68-.48 0-.24-.01-.88-.01-1.73-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02.8-.22 1.65-.33 2.5-.33.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85 0 1.34-.01 2.41-.01 2.74 0 .27.18.58.69.48A10.01 10.01 0 0 0 20 10c0-5.52-4.48-10-10-10z"/>
+      </svg>
+      <span class="sidebar-label">GitHub</span>
+    </a>
+
+    <!-- Toggle button — absolutely at bottom -->
+    <button class="sidebar-toggle" onclick="App.toggleSidebar()" title="Toggle sidebar" id="sidebarToggle">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" id="toggleIcon">
+        <path d="M9 2L3 7l6 5V2z" fill="currentColor"/>
+      </svg>
+    </button>
   </aside>
 
   <!-- Main content -->

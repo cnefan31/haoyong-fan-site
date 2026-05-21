@@ -124,16 +124,12 @@ body {
   opacity: 1;
 }
 
-/* Footer */
-.sidebar-footer {
+/* GitHub — pushed up from toggle at bottom */
+.sidebar-github {
   margin-top: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 0 6px 6px;
 }
 
-/* Toggle button */
+/* Toggle button — absolutely at very bottom, centered */
 .sidebar-toggle {
   width: 36px;
   height: 36px;
@@ -146,16 +142,15 @@ body {
   align-items: center;
   justify-content: center;
   transition: background 0.15s, color 0.15s;
-  align-self: flex-start;
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .sidebar-toggle:hover {
   background: var(--bg-sidebar-hover);
   color: var(--text-primary);
-}
-
-.sidebar.expanded .sidebar-toggle {
-  align-self: auto;
 }
 
 /* ============================================
