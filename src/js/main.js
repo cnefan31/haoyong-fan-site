@@ -4,15 +4,23 @@
   const page = currentPath.split('/').pop() || 'index.html';
   const pageName = page.replace('.html', '');
 
-  document.querySelectorAll('.nav-item[data-page]').forEach(link => {
+  document.querySelectorAll('[data-page]').forEach(link => {
     if (link.getAttribute('data-page') === pageName) {
       link.classList.add('active');
     }
   });
 })();
 
-// Mobile menu toggle
+// App namespace
 const App = {
+  // Desktop sidebar collapse/expand
+  toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    if (!sidebar) return;
+    sidebar.classList.toggle('expanded');
+  },
+
+  // Mobile menu toggle
   toggleMobileMenu() {
     const sidebar = document.querySelector('.mobile-sidebar');
     const overlay = document.querySelector('.mobile-sidebar-overlay');
