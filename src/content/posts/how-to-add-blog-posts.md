@@ -9,12 +9,12 @@ This site is built with a simple static site generator. Adding a new blog post t
 
 ## Prerequisites
 
-You'll need SSH access to the server at `149.88.88.16` on port `19048`.
+You'll need SSH access to the server where the site is hosted.
 
 ## Step 1: Connect to the Server
 
 ```bash
-ssh -p 19048 root@149.88.88.16
+ssh -p YOUR_SSH_PORT root@YOUR_SERVER_IP
 ```
 
 ## Step 2: Create Your Markdown File
