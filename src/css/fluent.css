@@ -5,7 +5,6 @@
 :root {
   --accent: #4f46e5;
   --accent-light: rgba(79, 70, 229, 0.08);
-  --accent-bg: rgba(79, 70, 229, 0.06);
   --bg: #fafafa;
   --bg-card: #ffffff;
   --bg-sidebar: #f5f5f5;
@@ -56,46 +55,17 @@ body {
   box-shadow: 1px 0 0 var(--border);
 }
 
-/* Expanded state */
 .sidebar.expanded {
   width: var(--sidebar-expanded);
   min-width: var(--sidebar-expanded);
 }
 
-/* Toggle button */
-.sidebar-toggle {
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  border-radius: var(--radius-btn);
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 10px;
-  transition: background 0.15s, color 0.15s;
-  flex-shrink: 0;
-}
-
-.sidebar-toggle:hover {
-  background: var(--bg-sidebar-hover);
-  color: var(--text-primary);
-}
-
-.sidebar.expanded .sidebar-toggle {
-  margin-left: 8px;
-}
-
-/* Nav section */
+/* Nav */
 .sidebar-nav {
   display: flex;
   flex-direction: column;
   gap: 2px;
   padding: 0 6px;
-  flex: 1;
 }
 
 /* Sidebar items */
@@ -156,13 +126,36 @@ body {
 
 /* Footer */
 .sidebar-footer {
+  margin-top: auto;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 0 6px;
-  margin-top: auto;
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
+  padding: 0 6px 6px;
+}
+
+/* Toggle button */
+.sidebar-toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-btn);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  align-self: flex-start;
+}
+
+.sidebar-toggle:hover {
+  background: var(--bg-sidebar-hover);
+  color: var(--text-primary);
+}
+
+.sidebar.expanded .sidebar-toggle {
+  align-self: auto;
 }
 
 /* ============================================
@@ -274,7 +267,7 @@ body {
   display: inline-block;
   padding: 3px 10px;
   background: var(--accent-light);
-  border: 1px solid var(--accent-border);
+  border: 1px solid rgba(79, 70, 229, 0.2);
   border-radius: var(--radius-tag);
   font-size: 11px;
   color: var(--accent);
