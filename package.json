@@ -6,7 +6,7 @@
     "build": "node build.js",
     "dev": "node build.js --watch"
   },
-  "dependencies": {
+  "devDependencies": {
     "marked": "^14.0.0",
     "gray-matter": "^4.0.3",
     "highlight.js": "^11.10.0"
