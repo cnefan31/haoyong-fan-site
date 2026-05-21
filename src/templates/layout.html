@@ -11,72 +11,86 @@
 <body>
   <!-- Mobile header -->
   <div class="mobile-header">
-    <button class="mobile-menu-btn" onclick="App.toggleMobileMenu()">☰</button>
+    <button class="mobile-menu-btn" onclick="App.toggleMobileMenu()">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+        <path d="M2 4h14v1.5H2V4zm0 4h14v1.5H2V8zm0 4h9v1.5H2V12z"/>
+      </svg>
+    </button>
   </div>
 
   <!-- Mobile overlay -->
-  <div class="mobile-sidebar-overlay" onclick="App.toggleMobileMenu()"></div>
+  <div class="mobile-overlay" onclick="App.toggleMobileMenu()"></div>
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
+  <!-- Mobile sidebar -->
+  <aside class="mobile-sidebar">
+    <button class="mobile-close" onclick="App.toggleMobileMenu()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M3.5 3.5l9 9m0-9l-9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <nav class="mobile-nav">
+      <a href="/index.html" class="mobile-nav-item" data-page="about">About</a>
+      <a href="/experience.html" class="mobile-nav-item" data-page="experience">Experience</a>
+      <a href="/projects.html" class="mobile-nav-item" data-page="projects">Projects</a>
+      <a href="/blog.html" class="mobile-nav-item" data-page="blog">Blog</a>
+    </nav>
+    <div class="mobile-footer">
+      <a href="https://github.com/" target="_blank">GitHub</a>
+      <a href="mailto:">Email</a>
+    </div>
+  </aside>
+
+  <!-- Desktop Sidebar -->
+  <aside class="sidebar" id="sidebar">
     <!-- Toggle button -->
-    <button class="sidebar-toggle" onclick="App.toggleSidebar()" title="Toggle sidebar">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-        <path d="M11.5 3L6 8l5.5 5V3z"/>
+    <button class="sidebar-toggle" onclick="App.toggleSidebar()" title="Toggle sidebar" id="sidebarToggle">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" id="toggleIcon">
+        <path d="M7.5 2L3 6l4.5 4V2z" fill="currentColor"/>
       </svg>
     </button>
 
-    <!-- Icon rail -->
-    <nav class="sidebar-icons">
-      <a href="/index.html" class="sidebar-icon-item" data-page="about" title="About">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+    <!-- Nav icons (always visible) -->
+    <nav class="sidebar-nav">
+      <a href="/index.html" class="sidebar-item" data-page="about" title="About">
+        <svg class="sidebar-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
           <path d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm0 9c-5.33 0-8 2.67-8 4v1h16v-1c0-1.33-2.67-4-8-4z"/>
         </svg>
+        <span class="sidebar-label">About</span>
       </a>
-      <a href="/experience.html" class="sidebar-icon-item" data-page="experience" title="Experience">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+      <a href="/experience.html" class="sidebar-item" data-page="experience" title="Experience">
+        <svg class="sidebar-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
           <path d="M2 5h16v2H2V5zm0 4h16v2H2V9zm0 4h10v2H2v-2z"/>
         </svg>
+        <span class="sidebar-label">Experience</span>
       </a>
-      <a href="/projects.html" class="sidebar-icon-item" data-page="projects" title="Projects">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+      <a href="/projects.html" class="sidebar-item" data-page="projects" title="Projects">
+        <svg class="sidebar-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
           <path d="M2 3h5l2 2h7v12H2V3zm2 4v2h8V7H4zm0 4v2h6v-2H4z"/>
         </svg>
+        <span class="sidebar-label">Projects</span>
       </a>
-      <a href="/blog.html" class="sidebar-icon-item" data-page="blog" title="Blog">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+      <a href="/blog.html" class="sidebar-item" data-page="blog" title="Blog">
+        <svg class="sidebar-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
           <path d="M4 3h12v2H4V3zm0 4h12v2H4V7zm0 4h8v2H4v-2z"/>
         </svg>
+        <span class="sidebar-label">Blog</span>
       </a>
     </nav>
 
     <!-- Bottom icons -->
-    <div class="sidebar-bottom">
-      <a href="https://github.com/" class="sidebar-icon-item" data-page="github" title="GitHub" target="_blank">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+    <div class="sidebar-footer">
+      <a href="https://github.com/" class="sidebar-item" data-page="github" title="GitHub" target="_blank">
+        <svg class="sidebar-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
           <path d="M10 0C4.48 0 0 4.48 0 10c0 4.42 2.87 8.17 6.84 9.5.5.09.68-.22.68-.48 0-.24-.01-.88-.01-1.73-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02.8-.22 1.65-.33 2.5-.33.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85 0 1.34-.01 2.41-.01 2.74 0 .27.18.58.69.48A10.01 10.01 0 0 0 20 10c0-5.52-4.48-10-10-10z"/>
         </svg>
+        <span class="sidebar-label">GitHub</span>
       </a>
-      <a href="mailto:" class="sidebar-icon-item" data-page="email" title="Email">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+      <a href="mailto:" class="sidebar-item" data-page="email" title="Email">
+        <svg class="sidebar-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
           <path d="M2 4h16v12H2V4zm2 2l8 6 8-6V16H4V6z"/>
         </svg>
+        <span class="sidebar-label">Email</span>
       </a>
-    </div>
-  </aside>
-
-  <!-- Mobile sidebar -->
-  <aside class="mobile-sidebar">
-    <button class="mobile-sidebar-close" onclick="App.toggleMobileMenu()">✕</button>
-    <nav class="sidebar-nav">
-      <a href="/index.html" class="nav-item" data-page="about">About</a>
-      <a href="/experience.html" class="nav-item" data-page="experience">Experience</a>
-      <a href="/projects.html" class="nav-item" data-page="projects">Projects</a>
-      <a href="/blog.html" class="nav-item" data-page="blog">Blog</a>
-    </nav>
-    <div class="mobile-sidebar-bottom">
-      <a href="https://github.com/" target="_blank">GitHub</a>
-      <a href="mailto:">Email</a>
     </div>
   </aside>
 
