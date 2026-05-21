@@ -1,0 +1,14 @@
+[
+  {
+    "title": "Senior Developer",
+    "company": "Tech Company",
+    "period": "2022 - Present",
+    "description": "Building cloud-native platforms and developer tooling."
+  },
+  {
+    "title": "Junior Developer",
+    "company": "Startup",
+    "period": "2019 - 2022",
+    "description": "Full-stack development, API design, CI/CD pipelines."
+  }
+]

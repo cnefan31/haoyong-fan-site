@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Cloud Dashboard",
+    "description": "A real-time cloud infrastructure monitoring dashboard with Kubernetes integration.",
+    "tech": ["React", "Go", "Prometheus"],
+    "link": ""
+  },
+  {
+    "name": "CLI Tool",
+    "description": "A developer CLI for managing microservice deployments.",
+    "tech": ["Go", "Docker"],
+    "link": ""
+  }
+]
