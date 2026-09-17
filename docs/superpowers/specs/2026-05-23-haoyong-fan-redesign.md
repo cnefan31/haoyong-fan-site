@@ -99,7 +99,7 @@ The workflow in `.github/workflows/deploy.yml` runs on pushes to `main` and supp
 6. Upload the generated static files to the configured remote directory.
 7. Verify `https://haoyong.fan` returns a successful response.
 
-Required secrets/configuration are `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`, and `DEPLOY_PATH`. Secrets must never appear in source files, logs, committed documentation, or workflow arguments. The supplied root password is not used by the workflow and must not be stored in GitHub.
+Required secrets/configuration are `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`, and `DEPLOY_PATH`. Secrets must never appear in source files, logs, committed documentation, or workflow arguments. The supplied root password is not used by the workflow and must not be stored in GitHub.
 
 The first deployment must inspect the server's existing web server, document root, HTTPS setup, and active services before changing anything. Existing site files are backed up before replacement. The workflow must not overwrite unrelated server configuration.
 

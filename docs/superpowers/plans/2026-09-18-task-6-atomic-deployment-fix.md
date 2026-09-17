@@ -6,7 +6,7 @@
 
 **Architecture:** Keep `DEPLOY_PATH` as the web-server's stable path. A single remote script validates and backs up the current path before upload; a later remote script validates the uploaded release, swaps a temporary symlink into place with `mv -Tf`, and prunes only matching release/backup directories after activation. First deployment renames a safe existing real directory into its preserved backup and points the stable path at that backup before upload, without changing web-server configuration.
 
-**Tech Stack:** GitHub Actions YAML, POSIX shell on the remote host, SSH, rsync, Hugo.
+**Tech Stack:** GitHub Actions YAML, Bash on the remote host, SSH, rsync, Hugo.
 
 ---
 
