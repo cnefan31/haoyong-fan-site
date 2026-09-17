@@ -1,0 +1,23 @@
+{{- $pages := .Pages -}}
+{{- if eq .Section "blog" -}}
+  {{- $pages = where $pages "Draft" false -}}
+{{- end -}}
+{{- $pages = sort $pages "Date" "desc" -}}
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0">
+  <channel>
+    <title>{{ .Title | htmlEscape }}</title>
+    <link>{{ .Permalink | htmlEscape }}</link>
+    <description>{{ (.Description | default site.Params.description) | plainify | htmlEscape }}</description>
+    <language>{{ site.Language.Lang | htmlEscape }}</language>
+    {{ range $pages }}
+    <item>
+      <title>{{ .Title | htmlEscape }}</title>
+      <link>{{ .Permalink | htmlEscape }}</link>
+      <guid>{{ .Permalink | htmlEscape }}</guid>
+      <pubDate>{{ .Date.Format "Mon, 02 Jan 2006 15:04:05 -0700" }}</pubDate>
+      <description>{{ (.Summary | plainify) | htmlEscape }}</description>
+    </item>
+    {{ end }}
+  </channel>
+</rss>

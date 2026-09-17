@@ -1,0 +1,14 @@
+{{ define "main" }}
+  <article class="page page--about">
+    {{ partial "page-heading.html" . }}
+    {{ with .Params.name }}<p class="about-name">{{ . | htmlEscape }}</p>{{ end }}
+    {{ with .Params.bio }}<p class="about-bio">{{ . | htmlEscape }}</p>{{ end }}
+    <div class="prose">{{ .Content }}</div>
+    {{ with .Params.skills }}
+      <section class="skills" aria-labelledby="skills-title">
+        <h2 id="skills-title">Skills</h2>
+        <ul class="tag-list">{{ range . }}<li>{{ . | htmlEscape }}</li>{{ end }}</ul>
+      </section>
+    {{ end }}
+  </article>
+{{ end }}
