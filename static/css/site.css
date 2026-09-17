@@ -4,7 +4,7 @@
   --color-surface-raised: #151e28;
   --color-text: #e8eef2;
   --color-muted: #8a9aa8;
-  --color-faint: #5d6b78;
+  --color-faint: #8a9aa8;
   --color-line: #283541;
   --color-accent: #39d0b6;
   --color-accent-alt: #6ea8fe;
@@ -20,6 +20,7 @@
   --space-6: 3.5rem;
   --space-7: 5rem;
   --border: 1px solid var(--color-line);
+  --motion-fast: 180ms ease;
   color-scheme: dark;
   font-family: var(--font-sans);
   font-synthesis: none;
@@ -64,6 +65,7 @@ a {
   text-decoration-thickness: 0.08em;
   text-underline-offset: 0.2em;
   overflow-wrap: anywhere;
+  transition: color var(--motion-fast);
 }
 
 a:hover {
@@ -137,7 +139,12 @@ a:hover {
 
 .mobile-menu-toggle,
 .mobile-navigation {
+  display: block;
+}
+
+.mobile-menu-toggle {
   display: none;
+  transition: border-color var(--motion-fast), color var(--motion-fast), background-color var(--motion-fast);
 }
 
 .site-main {
@@ -302,6 +309,12 @@ a:hover {
 .status-panel {
   min-width: 0;
   padding: var(--space-4);
+  transition: border-color var(--motion-fast), background-color var(--motion-fast);
+}
+
+.status-panel:hover {
+  border-color: var(--color-accent);
+  background: var(--color-surface-raised);
 }
 
 .status-panel + .status-panel {
@@ -729,7 +742,7 @@ h3 {
     display: none;
   }
 
-  .mobile-menu-toggle {
+  .js-enabled .mobile-menu-toggle {
     display: inline-flex;
     min-width: 5rem;
     min-height: 2.75rem;
@@ -768,6 +781,7 @@ h3 {
     min-height: 2.75rem;
     padding-block: 0.7rem;
     border-bottom: 1px solid var(--color-line);
+    transition: color var(--motion-fast), border-color var(--motion-fast), background-color var(--motion-fast);
   }
 
   .site-main {
@@ -830,6 +844,12 @@ h3 {
   .post-navigation {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-navigation {
+    display: none;
   }
 }
 

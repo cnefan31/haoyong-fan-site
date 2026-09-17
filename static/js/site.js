@@ -12,6 +12,9 @@
     return;
   }
 
+  document.documentElement.classList.add("js-enabled");
+  closeMenu();
+
   function closeMenu() {
     toggle.setAttribute("aria-expanded", "false");
     navigation.hidden = true;
