@@ -61,6 +61,7 @@ The first deployment preserves an existing real document root as a timestamped b
 The workflow retains the active release and the five newest timestamped release or backup artifacts. To roll back, log in through the approved deployment access and choose either a retained release under `${DEPLOY_PATH}.releases/release-*` or a retained backup at `${DEPLOY_PATH}.backup-*`. Backups are not stored under the release root. Manual rollback must acquire the same `${DEPLOY_PATH}.deploy.lock` mutex used by the workflow and release it on every exit. A backup must first be copied into a new validated release directory, then activated with a temporary symlink and atomic `mv -Tf`:
 
 ```bash
+set -euo pipefail
 DEPLOY_PATH=/path/to/document-root
 RELEASE_ROOT="${DEPLOY_PATH}.releases"
 test -n "$DEPLOY_PATH"

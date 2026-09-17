@@ -100,6 +100,7 @@ Once `.github/workflows/deploy.yml` and the repository's GitHub Actions Secrets 
 - `DEPLOY_HOST` — the deployment server hostname
 - `DEPLOY_USER` — a dedicated non-root deployment user
 - `DEPLOY_SSH_KEY` — the private key for that deployment user
+- `DEPLOY_KNOWN_HOSTS` — the verified SSH host key entry for the deployment server
 - `DEPLOY_PATH` — the server document root for the site
 
 The deployment user should have access limited to the site directory. Do not use root SSH access, commit secret values, or print secrets in logs.
