@@ -4,7 +4,7 @@
 
 **Goal:** Make the Hugo deployment back up first, upload into a versioned release, atomically activate through a symlink, and retain only the active release plus five newest timestamped artifacts.
 
-**Architecture:** Keep `DEPLOY_PATH` as the web-server's stable path. A single remote script validates and backs up the current path before upload; a later remote script validates the uploaded release, swaps a temporary symlink into place with `mv -Tf`, and prunes only matching release/backup directories after activation. First deployment renames a safe existing real directory into its preserved backup and points the stable path at that backup before upload, without changing web-server configuration.
+**Architecture:** Keep `DEPLOY_PATH` as the web-server's stable path. A single remote script validates and backs up the current path before upload; a later remote script validates the uploaded release, swaps a temporary symlink into place with `mv -Tf`, and prunes only matching release/backup directories after activation. First deployment preserves a safe existing real directory as a backup and points the stable path at an in-root baseline release before upload, without changing web-server configuration.
 
 **Tech Stack:** GitHub Actions YAML, Bash on the remote host, SSH, rsync, Hugo.
 
@@ -17,7 +17,7 @@
 
 - [ ] **Step 1: Update the preparation script**
 
-  Pass `DEPLOY_PATH`, a stable timestamped `release_id`, and the remote script. Validate that the path is absolute and not `/`; reject regular files, dangling symlinks, and unsupported path types. For an existing real directory, rename it to `${DEPLOY_PATH}.backup-<timestamp>-<release_id>` and point `DEPLOY_PATH` at that backup before creating `${DEPLOY_PATH}.release-<release_id>`. For an existing symlink, require a directory target and copy that target into its backup. For a missing path, validate its parent directory and create the release parent layout. Emit the release path only after the backup and release directory are ready.
+  Pass `DEPLOY_PATH`, a stable timestamped `release_id`, and the remote script. Validate that the path is absolute and not `/`; reject regular files, dangling symlinks, and unsupported path types. For an existing real directory, rename it to `${DEPLOY_PATH}.backup-<timestamp>-<release_id>`, copy it into an in-root `${DEPLOY_PATH}.releases/release-<timestamp>-<run>-<attempt>-previous` baseline, and point `DEPLOY_PATH` at that baseline before creating the new `${DEPLOY_PATH}.releases/release-<timestamp>-<run>-<attempt>` directory. For an existing symlink, require a directory target and copy that target into its backup. For a missing path, validate its parent directory and create the release parent layout. Emit the release path only after the backup and release directory are ready.
 
 - [ ] **Step 2: Run shell syntax validation on the extracted remote script shape**
 
@@ -30,15 +30,15 @@
 
 - [ ] **Step 1: Keep rsync pointed only at the versioned release**
 
-  Preserve strict SSH options and run rsync against `${DEPLOY_PATH}.release-${release_id}/`; never use `DEPLOY_PATH` as the rsync destination.
+  Preserve strict SSH options and run rsync against `${DEPLOY_PATH}.releases/release-${release_id}/`; never use `DEPLOY_PATH` as the rsync destination.
 
 - [ ] **Step 2: Replace backup-and-copy activation**
 
-  Require `${release_dir}/index.html`, create a unique temporary symlink beside `DEPLOY_PATH` pointing to the release, validate the link target and index, then atomically replace `DEPLOY_PATH` with `mv -Tf`. On first deployment this replaces the preserved real directory only after the release is valid. Fail before activation if the stable path changes to an unsupported type. Remove the temporary symlink only after a successful swap.
+  Require `${DEPLOY_PATH}.releases/release-${release_id}/index.html`, create a unique temporary symlink beside `DEPLOY_PATH` pointing to the release, validate the link target and index, then atomically replace `DEPLOY_PATH` with `mv -Tf`. On first deployment this replaces the baseline symlink only after the release is valid. Fail before activation if the stable path changes to an unsupported type. Remove the temporary symlink only after a successful swap.
 
 - [ ] **Step 3: Add retention pruning after successful activation**
 
-  Enumerate only siblings matching the exact `${DEPLOY_PATH}.release-*` and `${DEPLOY_PATH}.backup-*` patterns. Keep the active release and the five newest timestamped artifacts, then remove older matching directories. Do not prune before activation and do not touch unrelated names, files, or web-server configuration.
+  Enumerate only `${DEPLOY_PATH}.releases/release-*` and sibling `${DEPLOY_PATH}.backup-*` artifacts. Keep the active release and the five newest timestamped artifacts, then remove older matching directories. Do not prune before activation and do not touch unrelated names, files, or web-server configuration.
 
 ### Task 3: Document first-time setup and layout
 

@@ -126,17 +126,17 @@ jobs:
           elif test -e "$release_root"; then
             test -d "$release_root"
           else
-            install -d -m 755 -- "$release_root"
+            mkdir -m 755 -- "$release_root"
           fi
           release_root_real="$(readlink -f -- "$release_root")"
           test -n "$release_root_real"
           test "$release_root_real" != "/"
 
           if test -L "$deploy_path"; then
-            install -d -m 755 -- "$backup_dir"
+            mkdir -m 755 -- "$backup_dir"
             cp -a -- "$current_dir"/. "$backup_dir"/
           elif test -e "$deploy_path"; then
-            install -d -m 755 -- "$previous_release_dir"
+            mkdir -m 755 -- "$previous_release_dir"
             cp -a -- "$deploy_path"/. "$previous_release_dir"/
             mv -- "$deploy_path" "$backup_dir"
             ln -s -- "$previous_release_dir" "$deploy_path"
@@ -144,7 +144,7 @@ jobs:
             expected_current_dir="$(readlink -f -- "$deploy_path")"
           fi
 
-          install -d -m 755 -- "$release_dir"
+          mkdir -m 755 -- "$release_dir"
           printf '%s\n%s\n' "$release_dir" "$expected_current_dir"
           REMOTE_SCRIPT
           } | ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -s > "$RUNNER_TEMP/release-dir"
