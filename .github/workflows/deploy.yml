@@ -146,9 +146,18 @@ jobs:
           test "${deploy_path#/}" != "$deploy_path"
           test "$deploy_path" != "/"
           release_dir="${deploy_path}.release-${release_id}"
+          test -d "$release_dir"
+          test ! -L "$release_dir"
           test -f "$release_dir/index.html"
+          test ! -L "$release_dir/index.html"
 
-          if test -e "$deploy_path" && ! test -L "$deploy_path"; then
+          if test -L "$deploy_path"; then
+            current_dir="$(readlink -f -- "$deploy_path")"
+            test -n "$current_dir"
+            test -d "$current_dir"
+          elif test -e "$deploy_path"; then
+            # A real document root is converted to a symlink during preparation.
+            test -d "$deploy_path"
             printf '%s\n' "refusing to activate: DEPLOY_PATH is not a symlink" >&2
             exit 1
           fi
