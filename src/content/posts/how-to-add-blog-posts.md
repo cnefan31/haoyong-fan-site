@@ -91,7 +91,7 @@ git commit -m "docs: add blog post"
 git push origin main
 ```
 
-GitHub Actions builds the site with Hugo and deploys the generated files over SSH. The repository must have these GitHub Actions Secrets configured:
+Once `.github/workflows/deploy.yml` and the repository's GitHub Actions Secrets are configured, pushing to `main` triggers GitHub Actions to build the site with Hugo and deploy the generated files over SSH. The repository must have these GitHub Actions Secrets configured:
 
 - `DEPLOY_HOST` — the deployment server hostname
 - `DEPLOY_USER` — a dedicated non-root deployment user
