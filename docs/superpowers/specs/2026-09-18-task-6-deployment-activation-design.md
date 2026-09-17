@@ -6,9 +6,9 @@ Deploy Hugo output without writing into the live document root, while preserving
 
 ## Remote Layout
 
-`DEPLOY_PATH` remains the stable path configured in the web server. Deployment artifacts live beside it:
+`DEPLOY_PATH` remains the stable path configured in the web server. Deployment artifacts live in its sibling release root and backup directories:
 
-- `${DEPLOY_PATH}.release-<run>-<attempt>` contains an uploaded release.
+- `${DEPLOY_PATH}.releases/release-<timestamp>-<run>-<attempt>` contains an uploaded release.
 - `${DEPLOY_PATH}.backup-<UTC>-<run>-<attempt>` contains a rollback copy of the previous document root.
 
 The workflow only manages these exact prefixed directories and never removes unrelated server files or configuration.
