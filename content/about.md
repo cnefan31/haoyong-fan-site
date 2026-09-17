@@ -10,7 +10,10 @@ skills:
   - React
   - Kubernetes
   - AWS
-contacts: {}
+contacts:
+  GitHub: ""
+  Email: ""
+  Twitter: ""
 ---
 
 I build software across the stack, from APIs and interfaces to cloud-native platforms and developer tooling.
