@@ -54,7 +54,7 @@ Your content goes here...
 - `title` — The post title (required)
 - `date` — Publication date in `YYYY-MM-DD` format (required)
 - `tags` — Array of topic tags (optional)
-- `summary` — Short description shown on the blog list page (optional)
+- `summary` — Short description shown in the blog list (optional)
 
 ## Step 4: Write Your Content
 
