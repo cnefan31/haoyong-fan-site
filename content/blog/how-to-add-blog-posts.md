@@ -90,7 +90,7 @@ Open the local URL printed by Hugo to check the post, formatting, code blocks, a
 Commit the Markdown file and push it to `main`:
 
 ```bash
-git add content/blog/my-new-post.md
+git add my-new-post.md
 git commit -m "docs: add blog post"
 git push origin main
 ```
