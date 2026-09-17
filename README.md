@@ -64,30 +64,54 @@ The workflow retains the active release and the five newest timestamped release 
 DEPLOY_PATH=/path/to/document-root
 RELEASE_ROOT="${DEPLOY_PATH}.releases"
 SOURCE="${DEPLOY_PATH}.backup-<timestamp>-<run>-<attempt>"
-TARGET="$SOURCE"
+BACKUP_SOURCE="$SOURCE"
+# To use a retained release directly instead, set SOURCE to its release-* path
+# and set BACKUP_SOURCE="".
 
 test -d "$RELEASE_ROOT"
 test ! -L "$RELEASE_ROOT"
+RELEASE_ROOT_REAL="$(readlink -f -- "$RELEASE_ROOT")"
+test -n "$RELEASE_ROOT_REAL"
+test "$RELEASE_ROOT_REAL" != "/"
+
+if test -n "$BACKUP_SOURCE"; then
+  test -d "$BACKUP_SOURCE"
+  test ! -L "$BACKUP_SOURCE"
+  test -f "$BACKUP_SOURCE/index.html"
+  test ! -L "$BACKUP_SOURCE/index.html"
+  backup_parent="$(readlink -f -- "$(dirname -- "$DEPLOY_PATH")")"
+  backup_real="$(readlink -f -- "$BACKUP_SOURCE")"
+  deploy_name="$(basename -- "$DEPLOY_PATH")"
+  case "$backup_real/" in
+    "$backup_parent/$deploy_name.backup-"*) ;;
+    *)
+      printf '%s\n' "refusing external backup path: $backup_real" >&2
+      exit 1
+      ;;
+  esac
+  SOURCE="$(mktemp -d "${RELEASE_ROOT}/release-rollback-XXXXXX")"
+  cp -a -- "$BACKUP_SOURCE"/. "$SOURCE"/
+fi
+
+SOURCE_REAL="$(readlink -f -- "$SOURCE")"
+test -n "$SOURCE_REAL"
 test -d "$SOURCE"
 test ! -L "$SOURCE"
-
-case "$SOURCE" in
-  "${DEPLOY_PATH}.backup-"*)
-  TARGET="${RELEASE_ROOT}/release-rollback-$(date -u +%Y%m%dT%H%M%SZ)"
-  install -d -m 755 -- "$TARGET"
-  cp -a -- "$SOURCE"/. "$TARGET"/
+test "$SOURCE_REAL" != "$RELEASE_ROOT_REAL"
+case "$SOURCE_REAL/" in
+  "$RELEASE_ROOT_REAL"/*) ;;
+  *)
+    printf '%s\n' "refusing external rollback source: $SOURCE_REAL" >&2
+    exit 1
     ;;
 esac
-
-test -d "$TARGET"
-test ! -L "$TARGET"
-test -f "$TARGET/index.html"
-test ! -L "$TARGET/index.html"
+test -f "$SOURCE/index.html"
+test ! -L "$SOURCE/index.html"
 
 temporary_link="${DEPLOY_PATH}.rollback-$$"
 test ! -e "$temporary_link"
 test ! -L "$temporary_link"
-ln -s -- "$TARGET" "$temporary_link"
+ln -s -- "$SOURCE" "$temporary_link"
 mv -Tf -- "$temporary_link" "$DEPLOY_PATH"
 ```
 
