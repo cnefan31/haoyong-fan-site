@@ -63,6 +63,9 @@ The workflow retains the active release and the five newest timestamped release 
 ```bash
 DEPLOY_PATH=/path/to/document-root
 RELEASE_ROOT="${DEPLOY_PATH}.releases"
+test -n "$DEPLOY_PATH"
+test "${DEPLOY_PATH#/}" != "$DEPLOY_PATH"
+test "$DEPLOY_PATH" != "/"
 LOCK_DIR="${DEPLOY_PATH}.deploy.lock"
 LOCK_OWNER="manual-rollback-$(date -u +%Y%m%dT%H%M%SZ)-$$"
 test ! -L "$LOCK_DIR"
@@ -86,6 +89,16 @@ test -n "$RELEASE_ROOT_REAL"
 test "$RELEASE_ROOT_REAL" != "/"
 
 if test -n "$BACKUP_SOURCE"; then
+  backup_parent_configured="$(dirname -- "$DEPLOY_PATH")"
+  backup_name="$(basename -- "$BACKUP_SOURCE")"
+  test "$(dirname -- "$BACKUP_SOURCE")" = "$backup_parent_configured"
+  case "$backup_name" in
+    "$(basename -- "$DEPLOY_PATH").backup-"*) ;;
+    *)
+      printf '%s\n' "refusing backup with invalid name: $backup_name" >&2
+      exit 1
+      ;;
+  esac
   test -d "$BACKUP_SOURCE"
   test ! -L "$BACKUP_SOURCE"
   test -f "$BACKUP_SOURCE/index.html"
@@ -104,6 +117,15 @@ if test -n "$BACKUP_SOURCE"; then
   cp -a -- "$BACKUP_SOURCE"/. "$SOURCE"/
 fi
 
+source_name="$(basename -- "$SOURCE")"
+test "$(dirname -- "$SOURCE")" = "$RELEASE_ROOT"
+case "$source_name" in
+  release-*) ;;
+  *)
+    printf '%s\n' "refusing rollback source with invalid name: $source_name" >&2
+    exit 1
+    ;;
+esac
 SOURCE_REAL="$(readlink -f -- "$SOURCE")"
 test -n "$SOURCE_REAL"
 test -d "$SOURCE"
