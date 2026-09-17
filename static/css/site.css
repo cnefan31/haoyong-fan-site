@@ -1,0 +1,16 @@
+body {
+  color: #1f2933;
+  background: #ffffff;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.6;
+  margin: 0;
+}
+
+a {
+  color: #2457a6;
+}
+
+a:hover,
+a:focus-visible {
+  color: #163a70;
+}
