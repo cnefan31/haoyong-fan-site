@@ -1,0 +1,29 @@
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <p class="site-footer__copyright">&copy; {{ now.Year }} {{ site.Params.author | htmlEscape }}</p>
+    {{- with site.GetPage "about" }}
+      {{- with .Params.contacts }}
+        <nav class="contact-links" aria-label="Contact links">
+          {{- range $label, $rawValue := . }}
+            {{- $value := strings.TrimSpace (printf "%v" $rawValue) -}}
+            {{- $lowerValue := lower $value -}}
+            {{- $lowerLabel := lower (printf "%v" $label) -}}
+            {{- $href := "" -}}
+            {{- if and $value (eq $lowerLabel "email") }}
+              {{- $href = printf "mailto:%s" $value -}}
+            {{- else if or (strings.HasPrefix $lowerValue "https://") (strings.HasPrefix $lowerValue "http://") }}
+              {{- $href = $value -}}
+            {{- end }}
+            {{- if $href }}
+              <a
+                class="contact-links__link"
+                href="{{ $href | htmlEscape }}"
+                {{- if ne $lowerLabel "email" }} target="_blank" rel="noopener noreferrer"{{ end -}}
+              >{{ $label | htmlEscape }}</a>
+            {{- end }}
+          {{- end }}
+        </nav>
+      {{- end }}
+    {{- end }}
+  </div>
+</footer>

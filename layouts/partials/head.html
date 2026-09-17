@@ -1,0 +1,19 @@
+{{- $title := .Title | default site.Title -}}
+{{- $description := .Description | default site.Params.description -}}
+{{- $image := "/favicon.svg" | absURL -}}
+{{- with .Params.image }}
+  {{- $image = . | absURL -}}
+{{- end }}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ $title | htmlEscape }}</title>
+<meta name="description" content="{{ $description | htmlEscape }}">
+<link rel="canonical" href="{{ .Permalink | htmlEscape }}">
+<meta property="og:title" content="{{ $title | htmlEscape }}">
+<meta property="og:description" content="{{ $description | htmlEscape }}">
+<meta property="og:type" content="{{ if eq .Section "blog" }}article{{ else }}website{{ end }}">
+<meta property="og:url" content="{{ .Permalink | htmlEscape }}">
+<meta property="og:image" content="{{ $image | htmlEscape }}">
+<meta property="og:site_name" content="{{ site.Title | htmlEscape }}">
+<link rel="icon" type="image/svg+xml" href="{{ "favicon.svg" | relURL }}">
+<link rel="stylesheet" href="{{ "css/site.css" | relURL }}">

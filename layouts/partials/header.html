@@ -1,0 +1,20 @@
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="site-brand" href="{{ site.Home.RelPermalink | htmlEscape }}" aria-label="Haoyong Fan home">HF</a>
+
+    <button
+      class="mobile-menu-toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="mobile-navigation"
+    >
+      <span class="mobile-menu-toggle__label">Menu</span>
+    </button>
+
+    {{ partial "nav.html" (dict "page" . "variant" "desktop") }}
+  </div>
+
+  <div id="mobile-navigation" class="mobile-navigation" hidden>
+    {{ partial "nav.html" (dict "page" . "variant" "mobile") }}
+  </div>
+</header>
