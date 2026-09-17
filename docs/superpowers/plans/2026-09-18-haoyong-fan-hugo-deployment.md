@@ -241,7 +241,7 @@ The workflow must checkout the repository, install Hugo Extended, run `hugo --mi
 
 - [ ] **Step 3: Configure SSH safely**
 
-Read `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PATH`, and `DEPLOY_SSH_KEY` from GitHub Secrets. Write the key through the action's supported secret input or a temporary file with mode `600`; never interpolate secrets into log messages or command text. Pin the server host key in a secret or checked-in known-hosts value after verifying it out of band.
+Read `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PATH`, `DEPLOY_SSH_KEY`, and `DEPLOY_KNOWN_HOSTS` from GitHub Secrets. Write the key through the action's supported secret input or a temporary file with mode `600`; never interpolate secrets into log messages or command text. Pin the server host key in a secret or checked-in known-hosts value after verifying it out of band.
 
 - [ ] **Step 4: Back up and upload atomically**
 

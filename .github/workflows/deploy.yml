@@ -78,6 +78,8 @@ jobs:
           parent_dir="$(dirname -- "$deploy_path")"
           test -d "$parent_dir"
           release_root="${deploy_path}.releases"
+          expected_current_dir=
+          first_deploy=false
 
           if test -L "$deploy_path"; then
             # Existing symlinks must already point inside the existing release root.
@@ -98,11 +100,25 @@ jobs:
                 exit 1
                 ;;
             esac
+            expected_current_dir="$current_dir"
           elif test -e "$deploy_path"; then
             test -d "$deploy_path"
             # A real document root cannot be replaced by mv -Tf while non-empty.
             # Rename it first so the first activation can still be atomic.
+            first_deploy=true
           fi
+
+          release_dir="${release_root}/release-${release_id}"
+          backup_dir="${deploy_path}.backup-${release_id}"
+          if test "$first_deploy" = true; then
+            previous_release_dir="${release_root}/release-${release_id}-previous"
+            test ! -e "$previous_release_dir"
+            test ! -L "$previous_release_dir"
+          fi
+          test ! -e "$release_dir"
+          test ! -L "$release_dir"
+          test ! -e "$backup_dir"
+          test ! -L "$backup_dir"
 
           if test -L "$release_root"; then
             printf '%s\n' "refusing to use a symlink release root: $release_root" >&2
@@ -115,30 +131,31 @@ jobs:
           release_root_real="$(readlink -f -- "$release_root")"
           test -n "$release_root_real"
           test "$release_root_real" != "/"
-          release_dir="${release_root}/release-${release_id}"
-          backup_dir="${deploy_path}.backup-${release_id}"
-          test ! -e "$release_dir"
-          test ! -L "$release_dir"
-          test ! -e "$backup_dir"
-          test ! -L "$backup_dir"
 
           if test -L "$deploy_path"; then
             install -d -m 755 -- "$backup_dir"
             cp -a -- "$current_dir"/. "$backup_dir"/
           elif test -e "$deploy_path"; then
+            install -d -m 755 -- "$previous_release_dir"
+            cp -a -- "$deploy_path"/. "$previous_release_dir"/
             mv -- "$deploy_path" "$backup_dir"
-            ln -s -- "$backup_dir" "$deploy_path"
+            ln -s -- "$previous_release_dir" "$deploy_path"
             test -L "$deploy_path"
+            expected_current_dir="$(readlink -f -- "$deploy_path")"
           fi
 
           install -d -m 755 -- "$release_dir"
-          printf '%s' "$release_dir"
+          printf '%s\n%s\n' "$release_dir" "$expected_current_dir"
           REMOTE_SCRIPT
           } | ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -s > "$RUNNER_TEMP/release-dir"
 
-          release_dir="$(<"$RUNNER_TEMP/release-dir")"
+          mapfile -t remote_values < "$RUNNER_TEMP/release-dir"
+          test "${#remote_values[@]}" -eq 2
+          release_dir="${remote_values[0]}"
+          expected_current_dir="${remote_values[1]}"
           test -n "$release_dir"
           printf '%s\n' "$release_dir" > "$RUNNER_TEMP/release-dir"
+          printf '%s\n' "$expected_current_dir" > "$RUNNER_TEMP/expected-current"
 
       - name: Upload generated site
         env:
@@ -165,6 +182,7 @@ jobs:
           set -euo pipefail
           ssh_dir="$RUNNER_TEMP/deploy-ssh"
           release_id="$(<"$RUNNER_TEMP/release-id")"
+          expected_current_dir="$(<"$RUNNER_TEMP/expected-current")"
           ssh_options=(-i "$ssh_dir/id_deploy" -o IdentitiesOnly=yes -o UserKnownHostsFile="$ssh_dir/known_hosts" -o StrictHostKeyChecking=yes -o LogLevel=ERROR)
 
           # Required secrets: DEPLOY_HOST, DEPLOY_USER, DEPLOY_PATH, DEPLOY_SSH_KEY,
@@ -174,6 +192,7 @@ jobs:
           {
             printf 'deploy_path=%q\n' "$DEPLOY_PATH"
             printf 'release_id=%q\n' "$release_id"
+            printf 'expected_current_dir=%q\n' "$expected_current_dir"
             cat <<'REMOTE_SCRIPT'
           set -euo pipefail
           test -n "$deploy_path"
@@ -200,15 +219,23 @@ jobs:
           test -f "$release_dir/index.html"
           test ! -L "$release_dir/index.html"
 
-          if test -L "$deploy_path"; then
+          if test -n "$expected_current_dir"; then
+            test -L "$deploy_path"
             current_dir="$(readlink -f -- "$deploy_path")"
             test -n "$current_dir"
             test -d "$current_dir"
-          elif test -e "$deploy_path"; then
-            # A real document root is converted to a symlink during preparation.
-            test -d "$deploy_path"
-            printf '%s\n' "refusing to activate: DEPLOY_PATH is not a symlink" >&2
-            exit 1
+            test "$current_dir" = "$expected_current_dir"
+            test "$current_dir" != "$release_root_real"
+            case "$current_dir/" in
+              "$release_root_real"/*) ;;
+              *)
+                printf '%s\n' "refusing changed DEPLOY_PATH target: $current_dir" >&2
+                exit 1
+                ;;
+            esac
+          else
+            test ! -e "$deploy_path"
+            test ! -L "$deploy_path"
           fi
           activation_link="${deploy_path}.activate-${release_id}"
           test ! -e "$activation_link"
