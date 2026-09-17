@@ -58,19 +58,26 @@ The first deployment preserves an existing real document root as a timestamped b
 
 ## Rollback
 
-The workflow retains the active release and the five newest timestamped release or backup artifacts. To roll back, log in through the approved deployment access, choose a retained release or backup, and use a temporary symlink followed by an atomic `mv -Tf`:
+The workflow retains the active release and the five newest timestamped release or backup artifacts. To roll back, log in through the approved deployment access and choose either a retained release under `${DEPLOY_PATH}.releases/release-*` or a retained backup at `${DEPLOY_PATH}.backup-*`. Backups are not stored under the release root. A backup must first be copied into a new validated release directory, then activated with a temporary symlink and atomic `mv -Tf`:
 
 ```bash
 DEPLOY_PATH=/path/to/document-root
 RELEASE_ROOT="${DEPLOY_PATH}.releases"
-SOURCE="${RELEASE_ROOT}/release-<timestamp>-<run>-<attempt>"
+SOURCE="${DEPLOY_PATH}.backup-<timestamp>-<run>-<attempt>"
 TARGET="$SOURCE"
 
-if [[ "$SOURCE" == *.backup-* ]]; then
+test -d "$RELEASE_ROOT"
+test ! -L "$RELEASE_ROOT"
+test -d "$SOURCE"
+test ! -L "$SOURCE"
+
+case "$SOURCE" in
+  "${DEPLOY_PATH}.backup-"*)
   TARGET="${RELEASE_ROOT}/release-rollback-$(date -u +%Y%m%dT%H%M%SZ)"
   install -d -m 755 -- "$TARGET"
   cp -a -- "$SOURCE"/. "$TARGET"/
-fi
+    ;;
+esac
 
 test -d "$TARGET"
 test ! -L "$TARGET"
