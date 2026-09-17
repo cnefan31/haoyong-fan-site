@@ -13,20 +13,14 @@ This site is built with a simple static site generator. Adding a new blog post t
 
 ## Prerequisites
 
-You'll need SSH access to the server where the site is hosted.
+You'll need a local Hugo installation, access to the repository, and permission to push to `main`.
 
-## Step 1: Connect to the Server
+## Step 1: Create Your Markdown File
 
-```bash
-ssh -p YOUR_SSH_PORT root@YOUR_SERVER_IP
-```
-
-## Step 2: Create Your Markdown File
-
-Navigate to the posts directory:
+From a local checkout of the repository, navigate to the blog content directory:
 
 ```bash
-cd /opt/haoyong-fan-site/src/content/posts/
+cd content/blog/
 ```
 
 Create a new file with the `.md` extension. For example:
@@ -35,7 +29,7 @@ Create a new file with the `.md` extension. For example:
 nano my-new-post.md
 ```
 
-## Step 3: Write the Front Matter
+## Step 2: Write the Front Matter
 
 Every post starts with YAML front matter:
 
@@ -56,7 +50,7 @@ Your content goes here...
 - `tags` — Array of topic tags (optional)
 - `summary` — Short description shown in the blog list (optional)
 
-## Step 4: Write Your Content
+## Step 3: Write Your Content
 
 Below the front matter, write your post in Markdown:
 
@@ -81,23 +75,36 @@ The site supports:
 - Blockquotes
 - Links and images
 
-## Step 5: Build and Deploy
+## Step 4: Preview Locally
 
-From the project root:
+From the repository directory, start Hugo's local development server:
 
 ```bash
-cd /opt/haoyong-fan-site
-npm run build
+hugo server
 ```
 
-This will automatically:
-1. Convert your Markdown to HTML
-2. Generate the blog list page
-3. Create individual post pages
-4. Generate tag pages for each tag
-5. Copy everything to the website directory
+Open the local URL printed by Hugo to check the post, formatting, code blocks, and tags.
 
-## Step 6: Verify
+## Step 5: Push and Deploy
+
+Commit the Markdown file and push it to `main`:
+
+```bash
+git add content/blog/my-new-post.md
+git commit -m "docs: add blog post"
+git push origin main
+```
+
+GitHub Actions builds the site with Hugo and deploys the generated files over SSH. The repository must have these GitHub Actions Secrets configured:
+
+- `DEPLOY_HOST` — the deployment server hostname
+- `DEPLOY_USER` — a dedicated non-root deployment user
+- `DEPLOY_SSH_KEY` — the private key for that deployment user
+- `DEPLOY_PATH` — the server document root for the site
+
+The deployment user should have access limited to the site directory. Do not use root SSH access, commit secret values, or print secrets in logs.
+
+## Step 6: Verify the Published Post
 
 Open `https://haoyong.fan/blog/` to see your new post in the list.
 
@@ -108,16 +115,14 @@ Open `https://haoyong.fan/blog/` to see your new post in the list.
 - Code blocks work great with language hints: ````go` or ````python`
 - Posts are sorted by date, newest first
 
-## File Structure
+## Repository Structure
 
 ```
-/opt/haoyong-fan-site/
-├── src/
-│   └── content/
-│       └── posts/          ← Your .md files go here
-│           ├── welcome.md
-│           ├── cloud-native-tips.md
-│           └── my-new-post.md
-├── build.js                ← The build script
-└── dist/                   ← Generated HTML (don't edit)
+repository/
+├── content/
+│   └── blog/               ← Your .md files go here
+│       ├── welcome.md
+│       ├── cloud-native-tips.md
+│       └── my-new-post.md
+└── hugo.toml               ← Site configuration
 ```
