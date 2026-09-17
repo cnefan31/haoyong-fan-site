@@ -48,6 +48,68 @@ jobs:
           test -s "$ssh_dir/known_hosts"
           chmod 600 "$ssh_dir/id_deploy" "$ssh_dir/known_hosts"
 
+      - name: Acquire remote deployment lock
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+          ssh_dir="$RUNNER_TEMP/deploy-ssh"
+          lock_owner="github-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${GITHUB_JOB}"
+          printf '%s\n' "$lock_owner" > "$RUNNER_TEMP/deploy-lock-owner"
+          ssh_options=(-i "$ssh_dir/id_deploy" -o IdentitiesOnly=yes -o UserKnownHostsFile="$ssh_dir/known_hosts" -o StrictHostKeyChecking=yes -o LogLevel=ERROR)
+
+          {
+            printf 'deploy_path=%q\n' "$DEPLOY_PATH"
+            printf 'lock_owner=%q\n' "$lock_owner"
+            cat <<'REMOTE_SCRIPT'
+          set -euo pipefail
+          test -n "$deploy_path"
+          test "${deploy_path#/}" != "$deploy_path"
+          test "$deploy_path" != "/"
+          parent_dir="$(dirname -- "$deploy_path")"
+          test -d "$parent_dir"
+          release_root="${deploy_path}.releases"
+
+          # Preflight existing DEPLOY_PATH before creating the lock or any deployment artifact.
+          if test -L "$deploy_path"; then
+            test -d "$release_root"
+            test ! -L "$release_root"
+            release_root_real="$(readlink -f -- "$release_root")"
+            test -n "$release_root_real"
+            test "$release_root_real" != "/"
+            current_dir="$(readlink -f -- "$deploy_path")"
+            test -n "$current_dir"
+            test -d "$current_dir"
+            test "$current_dir" != "$release_root_real"
+            case "$current_dir/" in
+              "$release_root_real"/*) ;;
+              *)
+                printf '%s\n' "refusing external DEPLOY_PATH symlink target: $current_dir" >&2
+                exit 1
+                ;;
+            esac
+          elif test -e "$deploy_path"; then
+            test -d "$deploy_path"
+          fi
+
+          lock_dir="${deploy_path}.deploy.lock"
+          test ! -L "$lock_dir"
+          if ! mkdir -m 700 -- "$lock_dir" 2>/dev/null; then
+            printf '%s\n' "deployment lock is already held: $lock_dir" >&2
+            if test -f "$lock_dir/owner"; then
+              cat -- "$lock_dir/owner" >&2
+            fi
+            exit 1
+          fi
+          cleanup_lock() { rm -rf -- "$lock_dir"; }
+          trap cleanup_lock EXIT
+          printf '%s\nacquired_utc=%s\nhost=%s\n' "$lock_owner" "$(date -u +%Y%m%dT%H%M%SZ)" "$(hostname)" > "$lock_dir/owner"
+          trap - EXIT
+          REMOTE_SCRIPT
+          } | ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -s
+
       - name: Prepare remote release directory
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
@@ -70,8 +132,15 @@ jobs:
           {
             printf 'deploy_path=%q\n' "$DEPLOY_PATH"
             printf 'release_id=%q\n' "$release_id"
+            printf 'lock_owner=%q\n' "$(<"$RUNNER_TEMP/deploy-lock-owner")"
             cat <<'REMOTE_SCRIPT'
           set -euo pipefail
+          lock_dir="${deploy_path}.deploy.lock"
+          test -d "$lock_dir"
+          test ! -L "$lock_dir"
+          test -f "$lock_dir/owner"
+          IFS= read -r lock_owner_on_host < "$lock_dir/owner"
+          test "$lock_owner_on_host" = "$lock_owner"
           test -n "$deploy_path"
           test "${deploy_path#/}" != "$deploy_path"
           test "$deploy_path" != "/"
@@ -193,8 +262,15 @@ jobs:
             printf 'deploy_path=%q\n' "$DEPLOY_PATH"
             printf 'release_id=%q\n' "$release_id"
             printf 'expected_current_dir=%q\n' "$expected_current_dir"
+            printf 'lock_owner=%q\n' "$(<"$RUNNER_TEMP/deploy-lock-owner")"
             cat <<'REMOTE_SCRIPT'
           set -euo pipefail
+          lock_dir="${deploy_path}.deploy.lock"
+          test -d "$lock_dir"
+          test ! -L "$lock_dir"
+          test -f "$lock_dir/owner"
+          IFS= read -r lock_owner_on_host < "$lock_dir/owner"
+          test "$lock_owner_on_host" = "$lock_owner"
           test -n "$deploy_path"
           test "${deploy_path#/}" != "$deploy_path"
           test "$deploy_path" != "/"
@@ -278,3 +354,39 @@ jobs:
           for route in / /about/ /experience/ /projects/ /blog/ /robots.txt /sitemap.xml; do
             curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --max-time 20 --output /dev/null "https://haoyong.fan${route}"
           done
+
+      - name: Release remote deployment lock
+        if: always()
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+          ssh_dir="$RUNNER_TEMP/deploy-ssh"
+          if test ! -s "$RUNNER_TEMP/deploy-lock-owner"; then
+            exit 0
+          fi
+          lock_owner="$(<"$RUNNER_TEMP/deploy-lock-owner")"
+          ssh_options=(-i "$ssh_dir/id_deploy" -o IdentitiesOnly=yes -o UserKnownHostsFile="$ssh_dir/known_hosts" -o StrictHostKeyChecking=yes -o LogLevel=ERROR)
+
+          {
+            printf 'deploy_path=%q\n' "$DEPLOY_PATH"
+            printf 'lock_owner=%q\n' "$lock_owner"
+            cat <<'REMOTE_SCRIPT'
+          set -euo pipefail
+          test -n "$deploy_path"
+          test "${deploy_path#/}" != "$deploy_path"
+          test "$deploy_path" != "/"
+          lock_dir="${deploy_path}.deploy.lock"
+          if ! test -e "$lock_dir"; then
+            exit 0
+          fi
+          test -d "$lock_dir"
+          test ! -L "$lock_dir"
+          test -f "$lock_dir/owner"
+          IFS= read -r lock_owner_on_host < "$lock_dir/owner"
+          test "$lock_owner_on_host" = "$lock_owner"
+          rm -rf -- "$lock_dir"
+          REMOTE_SCRIPT
+          } | ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -s

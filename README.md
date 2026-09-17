@@ -58,11 +58,22 @@ The first deployment preserves an existing real document root as a timestamped b
 
 ## Rollback
 
-The workflow retains the active release and the five newest timestamped release or backup artifacts. To roll back, log in through the approved deployment access and choose either a retained release under `${DEPLOY_PATH}.releases/release-*` or a retained backup at `${DEPLOY_PATH}.backup-*`. Backups are not stored under the release root. A backup must first be copied into a new validated release directory, then activated with a temporary symlink and atomic `mv -Tf`:
+The workflow retains the active release and the five newest timestamped release or backup artifacts. To roll back, log in through the approved deployment access and choose either a retained release under `${DEPLOY_PATH}.releases/release-*` or a retained backup at `${DEPLOY_PATH}.backup-*`. Backups are not stored under the release root. Manual rollback must acquire the same `${DEPLOY_PATH}.deploy.lock` mutex used by the workflow and release it on every exit. A backup must first be copied into a new validated release directory, then activated with a temporary symlink and atomic `mv -Tf`:
 
 ```bash
 DEPLOY_PATH=/path/to/document-root
 RELEASE_ROOT="${DEPLOY_PATH}.releases"
+LOCK_DIR="${DEPLOY_PATH}.deploy.lock"
+LOCK_OWNER="manual-rollback-$(date -u +%Y%m%dT%H%M%SZ)-$$"
+test ! -L "$LOCK_DIR"
+if ! mkdir -m 700 -- "$LOCK_DIR" 2>/dev/null; then
+  printf '%s\n' "deployment lock is already held: $LOCK_DIR" >&2
+  exit 1
+fi
+cleanup_lock() { rm -rf -- "$LOCK_DIR"; }
+trap cleanup_lock EXIT
+printf '%s\nacquired_utc=%s\nhost=%s\n' "$LOCK_OWNER" "$(date -u +%Y%m%dT%H%M%SZ)" "$(hostname)" > "$LOCK_DIR/owner"
+
 SOURCE="${DEPLOY_PATH}.backup-<timestamp>-<run>-<attempt>"
 BACKUP_SOURCE="$SOURCE"
 # To use a retained release directly instead, set SOURCE to its release-* path
