@@ -101,7 +101,7 @@ The workflow in `.github/workflows/deploy.yml` runs on pushes to `main` and supp
 
 Required secrets/configuration are `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`, and `DEPLOY_PATH`. Secrets must never appear in source files, logs, committed documentation, or workflow arguments. The supplied root password is not used by the workflow and must not be stored in GitHub.
 
-The first deployment must inspect the server's existing web server, document root, HTTPS setup, and active services before changing anything. Existing site files are backed up before replacement, and an existing real document root is served through an in-root `release-...-previous` baseline while the new release uploads. The workflow must not overwrite unrelated server configuration.
+Before enabling deployment, an operator must inspect the server's existing web server, document root, HTTPS setup, and active services, preserve the current site in a timestamped backup, create an initial release under `${DEPLOY_PATH}.releases`, and set `DEPLOY_PATH` to that release through a symlink. The workflow rejects a real or missing `DEPLOY_PATH` and never converts it. Existing active releases are backed up before replacement, and the workflow must not overwrite unrelated server configuration.
 
 ## Responsive Behavior
 

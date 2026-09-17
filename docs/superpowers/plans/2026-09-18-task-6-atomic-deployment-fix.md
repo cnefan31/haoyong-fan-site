@@ -4,7 +4,7 @@
 
 **Goal:** Make the Hugo deployment back up first, upload into a versioned release, atomically activate through a symlink, and retain only the active release plus five newest timestamped artifacts.
 
-**Architecture:** Keep `DEPLOY_PATH` as the web-server's stable path. A single remote script validates and backs up the current path before upload; a later remote script validates the uploaded release, swaps a temporary symlink into place with `mv -Tf`, and prunes only matching release/backup directories after activation. First deployment preserves a safe existing real directory as a backup and points the stable path at an in-root baseline release before upload, without changing web-server configuration.
+**Architecture:** Keep `DEPLOY_PATH` as the web-server's stable symlink, created by an operator before CI deployment. A single remote script validates and backs up the current in-root release before upload; a later remote script validates the uploaded release, swaps a temporary symlink into place with `mv -Tf`, and prunes only matching release/backup directories after activation. A remote owner-metadata lock with a 30-minute lease spans preparation through smoke checks; the workflow never converts a real directory or creates a missing live path.
 
 **Tech Stack:** GitHub Actions YAML, Bash on the remote host, SSH, rsync, Hugo.
 
@@ -17,7 +17,7 @@
 
 - [ ] **Step 1: Update the preparation script**
 
-  Pass `DEPLOY_PATH`, a stable timestamped `release_id`, and the remote script. Validate that the path is absolute and not `/`; reject regular files, dangling symlinks, and unsupported path types. For an existing real directory, rename it to `${DEPLOY_PATH}.backup-<timestamp>-<release_id>`, copy it into an in-root `${DEPLOY_PATH}.releases/release-<timestamp>-<run>-<attempt>-previous` baseline, and point `DEPLOY_PATH` at that baseline before creating the new `${DEPLOY_PATH}.releases/release-<timestamp>-<run>-<attempt>` directory. For an existing symlink, require a directory target and copy that target into its backup. For a missing path, validate its parent directory and create the release parent layout. Emit the release path only after the backup and release directory are ready.
+  Pass `DEPLOY_PATH`, a stable timestamped `release_id`, and the remote script. Require `DEPLOY_PATH` to be an existing symlink into the existing `${DEPLOY_PATH}.releases` root; reject real directories, missing paths, dangling symlinks, and unsupported targets before any backup or release mutation. Copy the active in-root release to `${DEPLOY_PATH}.backup-<timestamp>-<release_id>`, then create the new `${DEPLOY_PATH}.releases/release-<timestamp>-<run>-<attempt>` directory. Emit the release path only after the backup and release directory are ready.
 
 - [ ] **Step 2: Run shell syntax validation on the extracted remote script shape**
 
@@ -47,7 +47,7 @@
 
 - [ ] **Step 1: Document required server setup**
 
-  Explain that the first deployment requires an existing absolute document-root path or a safely creatable missing path, writable sibling release/backup locations, and a web server already configured to serve `DEPLOY_PATH`. State that the workflow changes only the path entry and never edits web-server configuration. Document the release/backup naming and rollback implication without adding secrets.
+  Explain the one-time server setup: preserve any existing real document root as a timestamped backup, create an initial release under `${DEPLOY_PATH}.releases`, and atomically point `DEPLOY_PATH` at that release. Require writable release/backup/lock siblings and a web server already configured to serve `DEPLOY_PATH`; state that the workflow rejects a real or missing path and never edits web-server configuration. Document the 30-minute lock lease and manual rollback lock requirement without adding secrets.
 
 - [ ] **Step 2: Check secret and host-key handling**
 

@@ -49,16 +49,36 @@ Configure these names in the repository or environment secrets. Do not commit or
 Before the first deployment:
 
 - Configure the web server to serve the absolute `DEPLOY_PATH` path. The workflow does not edit web-server configuration.
-- Make `DEPLOY_PATH` a writable document-root directory, or use the workflow's safe symlink/release layout.
+- Before enabling GitHub Actions, create `${DEPLOY_PATH}.releases`, create an initial real release directory with the current site, and set `DEPLOY_PATH` to a symlink targeting that release during a maintenance window. The workflow requires this baseline and never converts a real directory or creates a missing live path.
 - Ensure the deployment user can create and write the sibling `${DEPLOY_PATH}.releases` root and timestamped `${DEPLOY_PATH}.backup-*` paths.
 - Ensure an existing `DEPLOY_PATH` symlink resolves to a real directory inside `${DEPLOY_PATH}.releases`. External, dangling, regular-file, and non-directory paths are rejected without modification.
 - Use a dedicated deployment user and limit its access to the site deployment paths.
 
-The first deployment preserves an existing real document root as a timestamped backup and creates an in-root baseline release. Later deployments upload to a new release directory and never sync directly into the live document root.
+The one-time baseline setup is an operator maintenance task. If `DEPLOY_PATH` is currently a real directory, schedule a brief maintenance window and run an equivalent setup with the approved deployment access:
+
+```bash
+set -euo pipefail
+DEPLOY_PATH=/path/to/document-root
+RELEASE_ROOT="${DEPLOY_PATH}.releases"
+BACKUP="${DEPLOY_PATH}.backup-initial-$(date -u +%Y%m%dT%H%M%SZ)"
+BASELINE="${RELEASE_ROOT}/release-initial"
+
+test -d "$DEPLOY_PATH"
+test ! -L "$DEPLOY_PATH"
+mkdir -m 755 -- "$RELEASE_ROOT"
+mkdir -m 755 -- "$BACKUP"
+cp -a -- "$DEPLOY_PATH"/. "$BACKUP"/
+mkdir -m 755 -- "$BASELINE"
+cp -a -- "$DEPLOY_PATH"/. "$BASELINE"/
+mv -- "$DEPLOY_PATH" "$BACKUP"
+ln -s -- "$BASELINE" "$DEPLOY_PATH"
+```
+
+Verify `DEPLOY_PATH` resolves to `BASELINE` and contains a regular `index.html` before enabling the workflow. After this setup exists, every workflow deployment copies the active in-root release to a timestamped backup, uploads to a new release directory, and atomically switches the live symlink. A real directory or missing `DEPLOY_PATH` fails before mutation.
 
 ## Rollback
 
-The workflow retains the active release and the five newest timestamped release or backup artifacts. To roll back, log in through the approved deployment access and choose either a retained release under `${DEPLOY_PATH}.releases/release-*` or a retained backup at `${DEPLOY_PATH}.backup-*`. Backups are not stored under the release root. Manual rollback must acquire the same `${DEPLOY_PATH}.deploy.lock` mutex used by the workflow and release it on every exit. A backup must first be copied into a new validated release directory, then activated with a temporary symlink and atomic `mv -Tf`:
+The workflow retains the active release and the five newest timestamped release or backup artifacts. The deployment lock uses a 30-minute lease with owner metadata; a lock older than the lease is atomically quarantined and recovered, while active or malformed locks fail safely. To roll back, log in through the approved deployment access and choose either a retained release under `${DEPLOY_PATH}.releases/release-*` or a retained backup at `${DEPLOY_PATH}.backup-*`. Backups are not stored under the release root. Manual rollback must acquire the same `${DEPLOY_PATH}.deploy.lock` mutex, apply the same lease/recovery rule, and release it on every exit. A backup must first be copied into a new validated release directory, then activated with a temporary symlink and atomic `mv -Tf`:
 
 ```bash
 set -euo pipefail
@@ -69,14 +89,34 @@ test "${DEPLOY_PATH#/}" != "$DEPLOY_PATH"
 test "$DEPLOY_PATH" != "/"
 LOCK_DIR="${DEPLOY_PATH}.deploy.lock"
 LOCK_OWNER="manual-rollback-$(date -u +%Y%m%dT%H%M%SZ)-$$"
+LOCK_LEASE_SECONDS=1800
 test ! -L "$LOCK_DIR"
 if ! mkdir -m 700 -- "$LOCK_DIR" 2>/dev/null; then
-  printf '%s\n' "deployment lock is already held: $LOCK_DIR" >&2
-  exit 1
+  test -d "$LOCK_DIR"
+  test ! -L "$LOCK_DIR"
+  test -f "$LOCK_DIR/owner"
+  IFS= read -r held_owner < "$LOCK_DIR/owner"
+  IFS= read -r acquired_epoch < <(sed -n '2p' "$LOCK_DIR/owner")
+  case "$acquired_epoch" in
+    ''|*[!0-9]*)
+      printf '%s\n' "deployment lock has invalid lease metadata: $held_owner" >&2
+      exit 1
+      ;;
+  esac
+  lock_age=$(($(date +%s) - acquired_epoch))
+  if ((lock_age < 0 || lock_age <= LOCK_LEASE_SECONDS)); then
+    printf '%s\n' "deployment lock is active: $held_owner" >&2
+    exit 1
+  fi
+  recovery_dir="${LOCK_DIR}.expired-$(date +%s)-$$"
+  test ! -e "$recovery_dir"
+  mv -- "$LOCK_DIR" "$recovery_dir"
+  rm -rf -- "$recovery_dir"
+  mkdir -m 700 -- "$LOCK_DIR"
 fi
 cleanup_lock() { rm -rf -- "$LOCK_DIR"; }
 trap cleanup_lock EXIT
-printf '%s\nacquired_utc=%s\nhost=%s\n' "$LOCK_OWNER" "$(date -u +%Y%m%dT%H%M%SZ)" "$(hostname)" > "$LOCK_DIR/owner"
+printf '%s\n%s\n%s\nlease_seconds=%s\n' "$LOCK_OWNER" "$(date +%s)" "$(hostname)" "$LOCK_LEASE_SECONDS" > "$LOCK_DIR/owner"
 
 SOURCE="${DEPLOY_PATH}.backup-<timestamp>-<run>-<attempt>"
 BACKUP_SOURCE="$SOURCE"

@@ -15,6 +15,7 @@ concurrency:
 
 env:
   HUGO_VERSION: 0.150.0
+  DEPLOY_LOCK_LEASE_SECONDS: 1800
 
 jobs:
   deploy:
@@ -22,10 +23,12 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        # actions/checkout v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Install Hugo Extended
-        uses: peaceiris/actions-hugo@v3
+        # peaceiris/actions-hugo v3.0.0
+        uses: peaceiris/actions-hugo@75d2e84710de30f6ff7268e08f310b60ef14033f
         with:
           hugo-version: ${{ env.HUGO_VERSION }}
           extended: true
@@ -57,12 +60,14 @@ jobs:
           set -euo pipefail
           ssh_dir="$RUNNER_TEMP/deploy-ssh"
           lock_owner="github-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${GITHUB_JOB}"
+          lock_lease_seconds="$DEPLOY_LOCK_LEASE_SECONDS"
           printf '%s\n' "$lock_owner" > "$RUNNER_TEMP/deploy-lock-owner"
           ssh_options=(-i "$ssh_dir/id_deploy" -o IdentitiesOnly=yes -o UserKnownHostsFile="$ssh_dir/known_hosts" -o StrictHostKeyChecking=yes -o LogLevel=ERROR)
 
           {
             printf 'deploy_path=%q\n' "$DEPLOY_PATH"
             printf 'lock_owner=%q\n' "$lock_owner"
+            printf 'lock_lease_seconds=%q\n' "$lock_lease_seconds"
             cat <<'REMOTE_SCRIPT'
           set -euo pipefail
           test -n "$deploy_path"
@@ -72,40 +77,62 @@ jobs:
           test -d "$parent_dir"
           release_root="${deploy_path}.releases"
 
-          # Preflight existing DEPLOY_PATH before creating the lock or any deployment artifact.
-          if test -L "$deploy_path"; then
-            test -d "$release_root"
-            test ! -L "$release_root"
-            release_root_real="$(readlink -f -- "$release_root")"
-            test -n "$release_root_real"
-            test "$release_root_real" != "/"
-            current_dir="$(readlink -f -- "$deploy_path")"
-            test -n "$current_dir"
-            test -d "$current_dir"
-            test "$current_dir" != "$release_root_real"
-            case "$current_dir/" in
-              "$release_root_real"/*) ;;
-              *)
-                printf '%s\n' "refusing external DEPLOY_PATH symlink target: $current_dir" >&2
-                exit 1
-                ;;
-            esac
-          elif test -e "$deploy_path"; then
-            test -d "$deploy_path"
+          # DEPLOY_PATH must already be a live symlink into the release root.
+          # The operator creates this baseline once during server setup.
+          if ! test -L "$deploy_path"; then
+            printf '%s\n' "DEPLOY_PATH must be an existing symlink into ${deploy_path}.releases; complete one-time server setup first" >&2
+            exit 1
           fi
+          test -d "$release_root"
+          test ! -L "$release_root"
+          release_root_real="$(readlink -f -- "$release_root")"
+          test -n "$release_root_real"
+          test "$release_root_real" != "/"
+          current_dir="$(readlink -f -- "$deploy_path")"
+          test -n "$current_dir"
+          test -d "$current_dir"
+          test "$current_dir" != "$release_root_real"
+          case "$current_dir/" in
+            "$release_root_real"/*) ;;
+            *)
+              printf '%s\n' "refusing external DEPLOY_PATH symlink target: $current_dir" >&2
+              exit 1
+              ;;
+          esac
 
           lock_dir="${deploy_path}.deploy.lock"
           test ! -L "$lock_dir"
           if ! mkdir -m 700 -- "$lock_dir" 2>/dev/null; then
             printf '%s\n' "deployment lock is already held: $lock_dir" >&2
-            if test -f "$lock_dir/owner"; then
-              cat -- "$lock_dir/owner" >&2
+            test -d "$lock_dir"
+            test ! -L "$lock_dir"
+            test -f "$lock_dir/owner"
+            IFS= read -r held_owner < "$lock_dir/owner"
+            IFS= read -r acquired_epoch < <(sed -n '2p' "$lock_dir/owner")
+            case "$acquired_epoch" in
+              ''|*[!0-9]*)
+                printf '%s\n' "deployment lock has invalid lease metadata: $held_owner" >&2
+                exit 1
+                ;;
+            esac
+            now_epoch="$(date +%s)"
+            lock_age=$((now_epoch - acquired_epoch))
+            if ((lock_age < 0 || lock_age <= lock_lease_seconds)); then
+              printf '%s\n' "deployment lock is active: $held_owner (age ${lock_age}s, lease ${lock_lease_seconds}s)" >&2
+              exit 1
             fi
-            exit 1
+            recovery_dir="${lock_dir}.expired-${now_epoch}-${lock_owner}"
+            test ! -e "$recovery_dir"
+            if ! mv -- "$lock_dir" "$recovery_dir"; then
+              printf '%s\n' "deployment lock changed during stale-lock recovery" >&2
+              exit 1
+            fi
+            rm -rf -- "$recovery_dir"
+            mkdir -m 700 -- "$lock_dir"
           fi
           cleanup_lock() { rm -rf -- "$lock_dir"; }
           trap cleanup_lock EXIT
-          printf '%s\nacquired_utc=%s\nhost=%s\n' "$lock_owner" "$(date -u +%Y%m%dT%H%M%SZ)" "$(hostname)" > "$lock_dir/owner"
+          printf '%s\n%s\n%s\nlease_seconds=%s\n' "$lock_owner" "$(date +%s)" "$(hostname)" "$lock_lease_seconds" > "$lock_dir/owner"
           trap - EXIT
           REMOTE_SCRIPT
           } | ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -s
@@ -127,8 +154,8 @@ jobs:
           # to serve DEPLOY_PATH.
           # Releases live under DEPLOY_PATH.releases/release-* and rollback backups are
           # siblings named .backup-*.
-          # On first deployment, an existing real document root is moved to its backup
-          # before upload; this workflow never edits web-server configuration.
+          # DEPLOY_PATH must be prepared as an in-root release symlink before CI runs.
+          # This workflow never converts a real document root or edits web-server configuration.
           {
             printf 'deploy_path=%q\n' "$DEPLOY_PATH"
             printf 'release_id=%q\n' "$release_id"
@@ -141,80 +168,45 @@ jobs:
           test -f "$lock_dir/owner"
           IFS= read -r lock_owner_on_host < "$lock_dir/owner"
           test "$lock_owner_on_host" = "$lock_owner"
+          if ! test -L "$deploy_path"; then
+            printf '%s\n' "DEPLOY_PATH must already be a symlink into its .releases root; complete one-time server setup first" >&2
+            exit 1
+          fi
           test -n "$deploy_path"
           test "${deploy_path#/}" != "$deploy_path"
           test "$deploy_path" != "/"
           parent_dir="$(dirname -- "$deploy_path")"
           test -d "$parent_dir"
           release_root="${deploy_path}.releases"
-          expected_current_dir=
-          first_deploy=false
-
-          if test -L "$deploy_path"; then
-            # Existing symlinks must already point inside the existing release root.
-            # Do not create any workflow directories before this check completes.
-            test -d "$release_root"
-            test ! -L "$release_root"
-            release_root_real="$(readlink -f -- "$release_root")"
-            test -n "$release_root_real"
-            test "$release_root_real" != "/"
-            current_dir="$(readlink -f -- "$deploy_path")"
-            test -n "$current_dir"
-            test -d "$current_dir"
-            test "$current_dir" != "$release_root_real"
-            case "$current_dir/" in
-              "$release_root_real"/*) ;;
-              *)
-                printf '%s\n' "refusing external DEPLOY_PATH symlink target: $current_dir" >&2
-                exit 1
-                ;;
-            esac
-            expected_current_dir="$current_dir"
-          elif test -e "$deploy_path"; then
-            test -d "$deploy_path"
-            # A real document root cannot be replaced by mv -Tf while non-empty.
-            # Rename it first so the first activation can still be atomic.
-            first_deploy=true
-          fi
+          test -d "$release_root"
+          test ! -L "$release_root"
+          release_root_real="$(readlink -f -- "$release_root")"
+          test -n "$release_root_real"
+          test "$release_root_real" != "/"
+          current_dir="$(readlink -f -- "$deploy_path")"
+          test -n "$current_dir"
+          test -d "$current_dir"
+          test "$current_dir" != "$release_root_real"
+          case "$current_dir/" in
+            "$release_root_real"/*) ;;
+            *)
+              printf '%s\n' "refusing external DEPLOY_PATH symlink target: $current_dir" >&2
+              exit 1
+              ;;
+          esac
 
           release_dir="${release_root}/release-${release_id}"
           backup_dir="${deploy_path}.backup-${release_id}"
-          if test "$first_deploy" = true; then
-            previous_release_dir="${release_root}/release-${release_id}-previous"
-            test ! -e "$previous_release_dir"
-            test ! -L "$previous_release_dir"
-          fi
           test ! -e "$release_dir"
           test ! -L "$release_dir"
           test ! -e "$backup_dir"
           test ! -L "$backup_dir"
 
-          if test -L "$release_root"; then
-            printf '%s\n' "refusing to use a symlink release root: $release_root" >&2
-            exit 1
-          elif test -e "$release_root"; then
-            test -d "$release_root"
-          else
-            mkdir -m 755 -- "$release_root"
-          fi
-          release_root_real="$(readlink -f -- "$release_root")"
-          test -n "$release_root_real"
-          test "$release_root_real" != "/"
-
-          if test -L "$deploy_path"; then
-            mkdir -m 755 -- "$backup_dir"
-            cp -a -- "$current_dir"/. "$backup_dir"/
-          elif test -e "$deploy_path"; then
-            mkdir -m 755 -- "$previous_release_dir"
-            cp -a -- "$deploy_path"/. "$previous_release_dir"/
-            mv -- "$deploy_path" "$backup_dir"
-            ln -s -- "$previous_release_dir" "$deploy_path"
-            test -L "$deploy_path"
-            expected_current_dir="$(readlink -f -- "$deploy_path")"
-          fi
+          mkdir -m 755 -- "$backup_dir"
+          cp -a -- "$current_dir"/. "$backup_dir"/
 
           mkdir -m 755 -- "$release_dir"
-          printf '%s\n%s\n' "$release_dir" "$expected_current_dir"
+          printf '%s\n%s\n' "$release_dir" "$current_dir"
           REMOTE_SCRIPT
           } | ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -s > "$RUNNER_TEMP/release-dir"
 
@@ -271,6 +263,7 @@ jobs:
           test -f "$lock_dir/owner"
           IFS= read -r lock_owner_on_host < "$lock_dir/owner"
           test "$lock_owner_on_host" = "$lock_owner"
+          test -L "$deploy_path"
           test -n "$deploy_path"
           test "${deploy_path#/}" != "$deploy_path"
           test "$deploy_path" != "/"
@@ -295,24 +288,18 @@ jobs:
           test -f "$release_dir/index.html"
           test ! -L "$release_dir/index.html"
 
-          if test -n "$expected_current_dir"; then
-            test -L "$deploy_path"
-            current_dir="$(readlink -f -- "$deploy_path")"
-            test -n "$current_dir"
-            test -d "$current_dir"
-            test "$current_dir" = "$expected_current_dir"
-            test "$current_dir" != "$release_root_real"
-            case "$current_dir/" in
-              "$release_root_real"/*) ;;
-              *)
-                printf '%s\n' "refusing changed DEPLOY_PATH target: $current_dir" >&2
-                exit 1
-                ;;
-            esac
-          else
-            test ! -e "$deploy_path"
-            test ! -L "$deploy_path"
-          fi
+          current_dir="$(readlink -f -- "$deploy_path")"
+          test -n "$current_dir"
+          test -d "$current_dir"
+          test "$current_dir" = "$expected_current_dir"
+          test "$current_dir" != "$release_root_real"
+          case "$current_dir/" in
+            "$release_root_real"/*) ;;
+            *)
+              printf '%s\n' "refusing changed DEPLOY_PATH target: $current_dir" >&2
+              exit 1
+              ;;
+          esac
           activation_link="${deploy_path}.activate-${release_id}"
           test ! -e "$activation_link"
           test ! -L "$activation_link"
