@@ -94,7 +94,7 @@ jobs:
           printf -v ssh_options 'ssh -i %q -o IdentitiesOnly=yes -o UserKnownHostsFile=%q -o StrictHostKeyChecking=yes -o LogLevel=ERROR' \
             "$ssh_dir/id_deploy" "$ssh_dir/known_hosts"
           rsync --archive --delete --delay-updates --quiet \
-            -e "ssh $ssh_options" \
+            -e "$ssh_options" \
             public/ "$DEPLOY_USER@$DEPLOY_HOST:${DEPLOY_PATH}.release-${release_id}/"
 
       - name: Back up and activate release
@@ -143,5 +143,5 @@ jobs:
         run: |
           set -euo pipefail
           for route in / /about/ /experience/ /projects/ /blog/ /robots.txt /sitemap.xml; do
-            curl --fail --silent --show-error --location --max-time 20 --output /dev/null "https://haoyong.fan${route}"
+            curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --max-time 20 --output /dev/null "https://haoyong.fan${route}"
           done
