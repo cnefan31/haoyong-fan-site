@@ -56,23 +56,48 @@ jobs:
         run: |
           set -euo pipefail
           ssh_dir="$RUNNER_TEMP/deploy-ssh"
-          release_id="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          release_id="$(date -u +%Y%m%dT%H%M%SZ)-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          printf '%s\n' "$release_id" > "$RUNNER_TEMP/release-id"
           ssh_options=(-i "$ssh_dir/id_deploy" -o IdentitiesOnly=yes -o UserKnownHostsFile="$ssh_dir/known_hosts" -o StrictHostKeyChecking=yes -o LogLevel=ERROR)
 
-          # DEPLOY_PATH is sent as data over stdin, not embedded in a remote command.
+          # DEPLOY_PATH is sent as a shell-quoted assignment over stdin, not embedded
+          # in a remote command. The server must already have its web server configured
+          # to serve DEPLOY_PATH.
+          # Releases and rollback backups are siblings named .release-* and .backup-*.
+          # On first deployment, an existing real document root is moved to its backup
+          # before upload; this workflow never edits web-server configuration.
           {
-            printf '%s\n' "$DEPLOY_PATH"
-            printf '%s\n' "$release_id"
+            printf 'deploy_path=%q\n' "$DEPLOY_PATH"
+            printf 'release_id=%q\n' "$release_id"
             cat <<'REMOTE_SCRIPT'
           set -euo pipefail
-          IFS= read -r deploy_path
-          IFS= read -r release_id
           test -n "$deploy_path"
           test "${deploy_path#/}" != "$deploy_path"
           test "$deploy_path" != "/"
-          test -d "$deploy_path"
+          parent_dir="$(dirname -- "$deploy_path")"
+          test -d "$parent_dir"
           release_dir="${deploy_path}.release-${release_id}"
-          rm -rf -- "$release_dir"
+          backup_dir="${deploy_path}.backup-${release_id}"
+          test ! -e "$release_dir"
+          test ! -L "$release_dir"
+          test ! -e "$backup_dir"
+          test ! -L "$backup_dir"
+
+          if test -L "$deploy_path"; then
+            current_dir="$(readlink -f -- "$deploy_path")"
+            test -n "$current_dir"
+            test -d "$current_dir"
+            install -d -m 755 -- "$backup_dir"
+            cp -a -- "$current_dir"/. "$backup_dir"/
+          elif test -e "$deploy_path"; then
+            test -d "$deploy_path"
+            # A real document root cannot be replaced by mv -Tf while non-empty.
+            # Rename it first so the first activation can still be atomic.
+            mv -- "$deploy_path" "$backup_dir"
+            ln -s -- "$backup_dir" "$deploy_path"
+            test -L "$deploy_path"
+          fi
+
           install -d -m 755 -- "$release_dir"
           printf '%s' "$release_dir"
           REMOTE_SCRIPT
@@ -90,14 +115,14 @@ jobs:
         run: |
           set -euo pipefail
           ssh_dir="$RUNNER_TEMP/deploy-ssh"
-          release_id="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          release_id="$(<"$RUNNER_TEMP/release-id")"
           printf -v ssh_options 'ssh -i %q -o IdentitiesOnly=yes -o UserKnownHostsFile=%q -o StrictHostKeyChecking=yes -o LogLevel=ERROR' \
             "$ssh_dir/id_deploy" "$ssh_dir/known_hosts"
           rsync --archive --delete --delay-updates --quiet \
             -e "$ssh_options" \
             public/ "$DEPLOY_USER@$DEPLOY_HOST:${DEPLOY_PATH}.release-${release_id}/"
 
-      - name: Back up and activate release
+      - name: Activate and retain release
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
@@ -105,7 +130,7 @@ jobs:
         run: |
           set -euo pipefail
           ssh_dir="$RUNNER_TEMP/deploy-ssh"
-          release_id="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          release_id="$(<"$RUNNER_TEMP/release-id")"
           ssh_options=(-i "$ssh_dir/id_deploy" -o IdentitiesOnly=yes -o UserKnownHostsFile="$ssh_dir/known_hosts" -o StrictHostKeyChecking=yes -o LogLevel=ERROR)
 
           # Required secrets: DEPLOY_HOST, DEPLOY_USER, DEPLOY_PATH, DEPLOY_SSH_KEY,
@@ -113,29 +138,52 @@ jobs:
           # server fingerprint out of band, for example with a reviewed ssh-keyscan.
           # Never use StrictHostKeyChecking=no and never store a server private key here.
           {
-            printf '%s\n' "$DEPLOY_PATH"
-            printf '%s\n' "$release_id"
+            printf 'deploy_path=%q\n' "$DEPLOY_PATH"
+            printf 'release_id=%q\n' "$release_id"
             cat <<'REMOTE_SCRIPT'
           set -euo pipefail
-          IFS= read -r deploy_path
-          IFS= read -r release_id
           test -n "$deploy_path"
           test "${deploy_path#/}" != "$deploy_path"
           test "$deploy_path" != "/"
-          test -d "$deploy_path"
           release_dir="${deploy_path}.release-${release_id}"
           test -f "$release_dir/index.html"
 
-          timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
-          backup_dir="${deploy_path}.backup-${timestamp}-${release_id}"
-          test ! -e "$backup_dir"
-          install -d -m 755 -- "$backup_dir"
-          cp -a -- "$deploy_path"/. "$backup_dir"/
-
-          # Keep the document-root path stable for the web server while rsync delays updates.
-          rsync --archive --delete --delay-updates -- "$release_dir"/ "$deploy_path"/
+          if test -e "$deploy_path" && ! test -L "$deploy_path"; then
+            printf '%s\n' "refusing to activate: DEPLOY_PATH is not a symlink" >&2
+            exit 1
+          fi
+          activation_link="${deploy_path}.activate-${release_id}"
+          test ! -e "$activation_link"
+          test ! -L "$activation_link"
+          ln -s -- "$release_dir" "$activation_link"
+          test -f "$activation_link/index.html"
+          mv -Tf -- "$activation_link" "$deploy_path"
+          test -L "$deploy_path"
           test -f "$deploy_path/index.html"
-          rm -rf -- "$release_dir"
+
+          active_release="$(readlink -f -- "$deploy_path")"
+          test "$active_release" = "$(readlink -f -- "$release_dir")"
+
+          # Keep the active release plus the five newest timestamped release/backup
+          # directories. Only these workflow-owned artifact names are pruned.
+          shopt -s nullglob
+          artifacts=("${deploy_path}.release-"* "${deploy_path}.backup-"*)
+          if ((${#artifacts[@]} > 0)); then
+            mapfile -t artifacts < <(printf '%s\n' "${artifacts[@]}" | sort -r)
+          fi
+          retained=0
+          for artifact in "${artifacts[@]}"; do
+            test -d "$artifact"
+            test ! -L "$artifact"
+            if test "$(readlink -f -- "$artifact")" = "$active_release"; then
+              continue
+            fi
+            if ((retained < 5)); then
+              retained=$((retained + 1))
+              continue
+            fi
+            rm -rf -- "$artifact"
+          done
           REMOTE_SCRIPT
           } | ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -s
 

@@ -15,9 +15,9 @@ The workflow only manages these exact prefixed directories and never removes unr
 
 ## Deployment Flow
 
-The remote workflow first validates `DEPLOY_PATH` and creates a timestamped backup of the current document root before any upload. Existing real directories are copied as backups. An existing symlink must resolve to a directory; unsupported path types, dangling symlinks, and unsafe paths fail without modification. On first deployment, a real document-root directory is preserved as the backup and the stable path is replaced with a symlink after the uploaded release is validated.
+The remote workflow first validates `DEPLOY_PATH` and creates a timestamped backup of the current document root before any upload. Existing real directories are renamed as backups, while existing symlink targets are copied as backups so the active release remains available. An existing symlink must resolve to a directory; unsupported path types, dangling symlinks, and unsafe paths fail without modification. On first deployment, a real document-root directory is preserved as the backup and the stable path temporarily points to that backup until the uploaded release is validated.
 
-The generated site is uploaded to a fresh versioned release directory. The workflow requires `index.html`, creates a temporary symlink to that release, and atomically swaps the stable path using `mv -Tf`. The web-server configuration is not changed.
+The generated site is uploaded to a fresh versioned release directory. For a first deployment with a real document root, the workflow renames that directory to its backup and temporarily points the stable path at the backup so the old site remains available while the release uploads. The workflow requires `index.html`, creates a temporary symlink to that release, and atomically swaps the stable path using `mv -Tf`. The web-server configuration is not changed.
 
 After successful activation, retention keeps the active release and the five newest timestamped release/backup directories. Only matching deployment artifacts older than that retention set are pruned.
 
