@@ -78,6 +78,32 @@ jobs:
           parent_dir="$(dirname -- "$deploy_path")"
           test -d "$parent_dir"
           release_root="${deploy_path}.releases"
+
+          if test -L "$deploy_path"; then
+            # Existing symlinks must already point inside the existing release root.
+            # Do not create any workflow directories before this check completes.
+            test -d "$release_root"
+            test ! -L "$release_root"
+            release_root_real="$(readlink -f -- "$release_root")"
+            test -n "$release_root_real"
+            test "$release_root_real" != "/"
+            current_dir="$(readlink -f -- "$deploy_path")"
+            test -n "$current_dir"
+            test -d "$current_dir"
+            test "$current_dir" != "$release_root_real"
+            case "$current_dir/" in
+              "$release_root_real"/*) ;;
+              *)
+                printf '%s\n' "refusing external DEPLOY_PATH symlink target: $current_dir" >&2
+                exit 1
+                ;;
+            esac
+          elif test -e "$deploy_path"; then
+            test -d "$deploy_path"
+            # A real document root cannot be replaced by mv -Tf while non-empty.
+            # Rename it first so the first activation can still be atomic.
+          fi
+
           if test -L "$release_root"; then
             printf '%s\n' "refusing to use a symlink release root: $release_root" >&2
             exit 1
@@ -97,23 +123,9 @@ jobs:
           test ! -L "$backup_dir"
 
           if test -L "$deploy_path"; then
-            current_dir="$(readlink -f -- "$deploy_path")"
-            test -n "$current_dir"
-            test -d "$current_dir"
-            test "$current_dir" != "$release_root_real"
-            case "$current_dir/" in
-              "$release_root_real"/*) ;;
-              *)
-                printf '%s\n' "refusing external DEPLOY_PATH symlink target: $current_dir" >&2
-                exit 1
-                ;;
-            esac
             install -d -m 755 -- "$backup_dir"
             cp -a -- "$current_dir"/. "$backup_dir"/
           elif test -e "$deploy_path"; then
-            test -d "$deploy_path"
-            # A real document root cannot be replaced by mv -Tf while non-empty.
-            # Rename it first so the first activation can still be atomic.
             mv -- "$deploy_path" "$backup_dir"
             ln -s -- "$backup_dir" "$deploy_path"
             test -L "$deploy_path"
