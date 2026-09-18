@@ -1,12 +1,12 @@
 {{- $page := .page -}}
 {{- $variant := .variant -}}
 {{- $items := slice
-  (dict "label" "About" "path" "about/" "section" "about")
-  (dict "label" "Experience" "path" "experience/" "section" "experience")
-  (dict "label" "Projects" "path" "projects/" "section" "projects")
-  (dict "label" "Blog" "path" "blog/" "section" "blog")
+  (dict "label" "关于" "path" "about/" "section" "about")
+  (dict "label" "经历" "path" "experience/" "section" "experience")
+  (dict "label" "项目" "path" "projects/" "section" "projects")
+  (dict "label" "博客" "path" "blog/" "section" "blog")
 -}}
-<nav class="site-nav site-nav--{{ $variant }}" aria-label="{{ $variant | title }} navigation">
+<nav class="site-nav site-nav--{{ $variant }}" aria-label="{{ if eq $variant "mobile" }}移动端导航{{ else }}主导航{{ end }}">
   {{- range $items }}
     {{- $isCurrent := or (eq $page.RelPermalink (.path | relURL)) (eq $page.Section .section) -}}
     <a

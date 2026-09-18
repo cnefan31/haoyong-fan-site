@@ -7,29 +7,29 @@
         <h1 id="home-title">{{ site.Title }}</h1>
         <p class="home-hero__positioning">{{ .Params.heroTitle }}</p>
         {{ with .Params.heroText }}<p class="home-hero__summary">{{ . }}</p>{{ end }}
-        <nav class="primary-links" aria-label="Primary links">
-          <a href="{{ "projects/" | relURL }}">View projects</a>
-          <a href="{{ "blog/" | relURL }}">Read the blog</a>
+        <nav class="primary-links" aria-label="主要入口">
+          <a href="{{ "projects/" | relURL }}">查看项目</a>
+          <a href="{{ "blog/" | relURL }}">阅读博客</a>
         </nav>
       </div>
 
-      <aside class="home-hero__panel" aria-label="Current status">
-        <p class="system-panel__title">System status</p>
+      <aside class="home-hero__panel" aria-label="当前状态">
+        <p class="system-panel__title">系统状态</p>
         <dl class="system-rows">
           {{ with .Params.currentFocus }}
             <div class="system-row">
-              <dt>Focus</dt>
+              <dt>方向</dt>
               <dd>{{ . }}</dd>
             </div>
           {{ end }}
           <div class="system-row">
-            <dt>Status</dt>
-            <dd><span class="status-dot" aria-hidden="true"></span>{{ $.Params.status | default "SYSTEM ONLINE" }}</dd>
+            <dt>状态</dt>
+            <dd><span class="status-dot" aria-hidden="true"></span>{{ $.Params.status | default "在线" }}</dd>
           </div>
           {{ with $about }}
             {{ with .Params.skills }}
               <div class="system-row">
-                <dt>Stack</dt>
+                <dt>技术栈</dt>
                 <dd>
                   <ul class="tag-list">
                     {{ range . }}<li>{{ . }}</li>{{ end }}
@@ -46,15 +46,15 @@
     {{ $projects = sort $projects "Weight" "asc" }}
     <section class="home-section" aria-labelledby="featured-projects-title">
       <div class="section-heading">
-        <p class="section-heading__eyebrow">Selected work</p>
-        <h2 id="featured-projects-title">Featured projects</h2>
+        <p class="section-heading__eyebrow">精选作品</p>
+        <h2 id="featured-projects-title">精选项目</h2>
       </div>
       {{ if $projects }}
         <div class="project-grid">
           {{ range $projects }}{{ partial "card-project.html" . }}{{ end }}
         </div>
       {{ else }}
-        <p>No featured projects are published yet.</p>
+        <p>暂无精选项目。</p>
       {{ end }}
     </section>
 
@@ -62,13 +62,13 @@
     {{ $posts = first 3 (sort $posts "Date" "desc") }}
     <section class="home-section" aria-labelledby="latest-posts-title">
       <div class="section-heading">
-        <p class="section-heading__eyebrow">From the log</p>
-        <h2 id="latest-posts-title">Latest writing</h2>
+        <p class="section-heading__eyebrow">最新动态</p>
+        <h2 id="latest-posts-title">最新文章</h2>
       </div>
       {{ if $posts }}
         <div class="post-list">{{ range $posts }}{{ partial "card-post.html" . }}{{ end }}</div>
       {{ else }}
-        <p>No published posts yet.</p>
+        <p>暂无文章。</p>
       {{ end }}
     </section>
   </div>

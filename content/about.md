@@ -1,9 +1,9 @@
 ---
-title: "About"
-description: "About Haoyong Fan, a full-stack developer focused on distributed systems and cloud infrastructure."
+title: "关于"
+description: "关于范浩勇：一名专注分布式系统与云基础设施的全栈开发者。"
 layout: "about"
-name: "Haoyong Fan"
-bio: "Full-stack developer with experience building distributed systems and cloud infrastructure. Passionate about open source and developer tools."
+name: "范浩勇"
+bio: "全栈开发者，具备分布式系统与云基础设施的实践经验，热衷于开源与开发者工具。"
 skills:
   - Go
   - Python
@@ -16,4 +16,4 @@ contacts:
   Twitter: ""
 ---
 
-I build software across the stack, from APIs and interfaces to cloud-native platforms and developer tooling.
+我负责从 API、前端界面到云原生平台与开发者工具的全栈开发。

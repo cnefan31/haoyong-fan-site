@@ -3,7 +3,7 @@
     <p class="site-footer__copyright">&copy; {{ now.Year }} {{ site.Params.author }}</p>
     {{- with site.GetPage "about" }}
       {{- with .Params.contacts }}
-        <nav class="contact-links" aria-label="Contact links">
+        <nav class="contact-links" aria-label="联系方式">
           {{- range $label, $rawValue := . }}
             {{- $value := strings.TrimSpace (printf "%v" $rawValue) -}}
             {{- $lowerValue := lower $value -}}

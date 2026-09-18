@@ -1,8 +1,0 @@
-{{ define "main" }}
-  <section class="page page--taxonomy">
-    {{ partial "page-heading.html" . }}
-    {{ $posts := where .Pages "Draft" false }}
-    {{ $posts = sort $posts "Date" "desc" }}
-    {{ if $posts }}<div class="post-list">{{ range $posts }}{{ partial "card-post.html" . }}{{ end }}</div>{{ else }}<p>No published posts use this tag yet.</p>{{ end }}
-  </section>
-{{ end }}

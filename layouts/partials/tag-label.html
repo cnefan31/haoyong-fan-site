@@ -1,0 +1,7 @@
+{{- $labels := hugo.Data.tag_labels | default dict -}}
+{{- $key := . -}}
+{{- $label := $key -}}
+{{- if $key -}}
+  {{- $label = index $labels (printf "%v" $key) | default $key -}}
+{{- end -}}
+{{- return $label -}}

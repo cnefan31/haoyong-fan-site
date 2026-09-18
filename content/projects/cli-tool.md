@@ -1,6 +1,6 @@
 ---
-title: "CLI Tool"
-description: "A developer CLI for managing microservice deployments."
+title: "命令行部署工具"
+description: "用于管理微服务部署的开发者命令行工具。"
 technologies:
   - Go
   - Docker

@@ -1,8 +1,9 @@
 ---
-title: "5 Lessons from Building Cloud-Native Apps"
+title: "构建云原生应用的 5 点经验"
+slug: "5-lessons-from-building-cloud-native-apps"
 date: 2026-05-20
-description: "Key takeaways from years of building and deploying cloud-native applications."
-summary: "Key takeaways from years of building and deploying cloud-native applications."
+description: "多年构建与部署云原生应用的关键经验总结。"
+summary: "多年构建与部署云原生应用的关键经验总结。"
 tags:
   - cloud
   - kubernetes
@@ -10,24 +11,24 @@ tags:
 draft: false
 ---
 
-Building cloud-native applications is hard. Here's what I've learned.
+构建云原生应用并不容易。以下是我总结的一些经验。
 
-## 1. Design for Failure
+## 1. 为失败而设计
 
-Assume every component will fail. Build redundancy and graceful degradation from day one.
+假设每个组件都可能失效。从第一天起就构建冗余与优雅降级。
 
-## 2. Observability is Not Optional
+## 2. 可观测性不是可选项
 
-You can't fix what you can't see. Invest early in structured logging, distributed tracing, and metrics.
+看不见的问题就无法修复。尽早投入结构化日志、分布式追踪和指标。
 
-## 3. Kubernetes is Complex
+## 3. Kubernetes 很复杂
 
-The abstraction is powerful but the operational burden is real. Start simple, scale gradually.
+它的抽象能力很强，但运维负担也是真实存在的。从简单开始，逐步扩展。
 
-## 4. Automation is Everything
+## 4. 自动化就是一切
 
-Manual deployments are a liability. CI/CD pipelines, GitOps, and infrastructure as code are not optional at scale.
+手动部署是负债。CI/CD 流水线、GitOps 和基础设施即代码在规模化时不是可选项。
 
-## 5. Documentation Wins
+## 5. 文档决定成败
 
-The best systems have both code and docs written with care. Your future self will thank you.
+最好的系统，代码和文档同样用心。未来的你会感谢现在的你。

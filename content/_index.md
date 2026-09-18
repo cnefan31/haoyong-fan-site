@@ -1,11 +1,11 @@
 ---
-title: "Haoyong Fan"
-description: "Full-stack developer building reliable systems and developer tools."
+title: "范浩勇"
+description: "全栈开发者，构建可靠的系统与开发者工具。"
 layout: "home"
-heroTitle: "Full-stack developer building reliable systems and developer tools."
-heroText: "I work across distributed systems, cloud infrastructure, and developer tooling, with a focus on practical software that is dependable and useful."
-currentFocus: "Cloud-native platforms and developer tooling"
-status: "SYSTEM ONLINE"
+heroTitle: "全栈开发者，构建可靠的系统与开发者工具。"
+heroText: "我专注于分布式系统、云基础设施与开发者工具，追求实用、可靠、经得起长期使用的软件。"
+currentFocus: "云原生平台与开发者工具"
+status: "在线"
 ---
 
-This is Haoyong Fan's personal site for projects, experience, and writing about software development, cloud infrastructure, and developer tools.
+这是范浩勇的个人网站，记录项目、工作经历，以及关于软件开发、云基础设施和开发者工具的思考。

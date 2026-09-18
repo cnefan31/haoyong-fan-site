@@ -1,13 +1,13 @@
 baseURL = 'https://haoyong.fan/'
-locale = 'en-us'
-defaultContentLanguage = 'en'
-title = 'Haoyong Fan'
+locale = 'zh-CN'
+defaultContentLanguage = 'zh-cn'
+title = '范浩勇'
 enableRobotsTXT = true
 enableGitInfo = false
 
 [params]
-  description = 'Haoyong Fan — full-stack developer building reliable systems and developer tools.'
-  author = 'Haoyong Fan'
+  description = '范浩勇的个人网站：全栈开发、分布式系统、云基础设施与开发者工具。'
+  author = '范浩勇'
 
 [taxonomies]
   tag = 'tags'

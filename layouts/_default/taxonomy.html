@@ -1,18 +1,21 @@
 {{ define "main" }}
   <section class="page page--taxonomy">
-    {{ partial "page-heading.html" . }}
+    <header class="page-heading">
+      <p class="page-heading__eyebrow">全部标签</p>
+      <h1>标签</h1>
+    </header>
     {{ $terms := .Pages }}
     {{ if $terms }}
       <ul class="tag-list">
         {{ range $terms }}
           <li>
-            <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+            <a href="{{ .RelPermalink }}">{{ partial "tag-label.html" .Data.Term }}</a>
             <span class="tag-list__count">{{ len .Pages }}</span>
           </li>
         {{ end }}
       </ul>
     {{ else }}
-      <p>No tags yet.</p>
+      <p>暂无标签。</p>
     {{ end }}
   </section>
 {{ end }}

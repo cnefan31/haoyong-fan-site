@@ -2,8 +2,8 @@
   <article class="page page--entry">
     {{ partial "page-heading.html" . }}
     <div class="prose">{{ .Content }}</div>
-    {{ with .Params.technologies }}<ul class="tag-list" aria-label="Technologies">{{ range . }}<li>{{ . }}</li>{{ end }}</ul>{{ end }}
+    {{ with .Params.technologies }}<ul class="tag-list" aria-label="技术栈">{{ range . }}<li>{{ . }}</li>{{ end }}</ul>{{ end }}
     {{ $link := strings.TrimSpace (printf "%v" (.Params.link | default "")) }}
-    {{ if and $link (or (strings.HasPrefix (lower $link) "https://") (strings.HasPrefix (lower $link) "http://")) }}<p><a href="{{ $link }}" target="_blank" rel="noopener noreferrer">Visit project</a></p>{{ end }}
+    {{ if and $link (or (strings.HasPrefix (lower $link) "https://") (strings.HasPrefix (lower $link) "http://")) }}<p><a href="{{ $link }}" target="_blank" rel="noopener noreferrer">访问项目</a></p>{{ end }}
   </article>
 {{ end }}

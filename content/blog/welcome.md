@@ -1,19 +1,20 @@
 ---
-title: "Welcome to My Blog"
+title: "欢迎来到我的博客"
+slug: "welcome-to-my-blog"
 date: 2026-05-22
-description: "A quick introduction to what I'll be writing about here."
-summary: "A quick introduction to what I'll be writing about here."
+description: "简单介绍一下我在这里会写些什么。"
+summary: "简单介绍一下我在这里会写些什么。"
 tags:
   - announcement
 draft: false
 ---
 
-Welcome! This is my personal blog where I'll share thoughts on software development, cloud infrastructure, and building developer tools.
+欢迎！这里是我的个人博客，我会分享关于软件开发、云基础设施和开发者工具的想法。
 
-## What to Expect
+## 你可以期待
 
-- Deep dives into distributed systems
-- Practical tips from real projects
-- Reflections on engineering culture
+- 分布式系统的深入探讨
+- 来自真实项目的实践经验
+- 对工程文化的思考
 
-Stay tuned!
+敬请期待！

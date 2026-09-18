@@ -1,0 +1,12 @@
+{{ define "main" }}
+  {{ $label := partial "tag-label.html" .Data.Term }}
+  <section class="page page--taxonomy">
+    <header class="page-heading">
+      <p class="page-heading__eyebrow">标签</p>
+      <h1>{{ $label }}</h1>
+    </header>
+    {{ $posts := where .Pages "Draft" false }}
+    {{ $posts = sort $posts "Date" "desc" }}
+    {{ if $posts }}<div class="post-list">{{ range $posts }}{{ partial "card-post.html" . }}{{ end }}</div>{{ else }}<p>该标签下暂无文章。</p>{{ end }}
+  </section>
+{{ end }}
