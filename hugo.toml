@@ -1,0 +1,20 @@
+baseURL = 'https://haoyong.fan/'
+locale = 'en-us'
+defaultContentLanguage = 'en'
+title = 'Haoyong Fan'
+enableRobotsTXT = true
+enableGitInfo = false
+
+[params]
+  description = 'Haoyong Fan — full-stack developer building reliable systems and developer tools.'
+  author = 'Haoyong Fan'
+
+[taxonomies]
+  tag = 'tags'
+
+[permalinks]
+  blog = '/blog/:slug/'
+
+[markup.highlight]
+  noClasses = false
+  lineNos = false

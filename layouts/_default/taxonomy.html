@@ -1,0 +1,18 @@
+{{ define "main" }}
+  <section class="page page--taxonomy">
+    {{ partial "page-heading.html" . }}
+    {{ $terms := .Pages }}
+    {{ if $terms }}
+      <ul class="tag-list">
+        {{ range $terms }}
+          <li>
+            <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+            <span class="tag-list__count">{{ len .Pages }}</span>
+          </li>
+        {{ end }}
+      </ul>
+    {{ else }}
+      <p>No tags yet.</p>
+    {{ end }}
+  </section>
+{{ end }}

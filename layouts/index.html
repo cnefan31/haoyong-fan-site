@@ -1,0 +1,55 @@
+{{ define "main" }}
+  <div class="home-page">
+    <section class="home-hero" aria-labelledby="home-title">
+      <p class="status-label">{{ .Params.status | default "SYSTEM ONLINE" }}</p>
+      <h1 id="home-title">{{ site.Title }}</h1>
+      <p class="home-hero__positioning">{{ .Params.heroTitle }}</p>
+      {{ with .Params.heroText }}<p class="home-hero__summary">{{ . }}</p>{{ end }}
+      <nav class="primary-links" aria-label="Primary links">
+        <a href="{{ "projects/" | relURL }}">View projects</a>
+        <a href="{{ "blog/" | relURL }}">READ THE BLOG</a>
+      </nav>
+    </section>
+
+    <section class="status-panels" aria-label="Current status">
+      <article class="status-panel">
+        <p class="status-panel__label">Current focus</p>
+        <p>{{ .Params.currentFocus }}</p>
+      </article>
+      <article class="status-panel">
+        <p class="status-panel__label">Availability</p>
+        <p>{{ .Params.status | default "SYSTEM ONLINE" }}</p>
+      </article>
+    </section>
+
+    {{ $projects := where (where site.RegularPages "Section" "projects") "Params.featured" true }}
+    {{ $projects = sort $projects "Weight" "asc" }}
+    <section class="home-section" aria-labelledby="featured-projects-title">
+      <div class="section-heading">
+        <p class="section-heading__eyebrow">Selected work</p>
+        <h2 id="featured-projects-title">Featured projects</h2>
+      </div>
+      {{ if $projects }}
+        <div class="project-grid">
+          {{ range $projects }}{{ partial "card-project.html" . }}{{ end }}
+        </div>
+      {{ else }}
+        <p>No featured projects are published yet.</p>
+      {{ end }}
+    </section>
+
+    {{ $posts := where (where site.RegularPages "Section" "blog") "Draft" false }}
+    {{ $posts = first 3 (sort $posts "Date" "desc") }}
+    <section class="home-section" aria-labelledby="latest-posts-title">
+      <div class="section-heading">
+        <p class="section-heading__eyebrow">From the log</p>
+        <h2 id="latest-posts-title">Latest writing</h2>
+      </div>
+      {{ if $posts }}
+        <div class="post-list">{{ range $posts }}{{ partial "card-post.html" . }}{{ end }}</div>
+      {{ else }}
+        <p>No published posts yet.</p>
+      {{ end }}
+    </section>
+  </div>
+{{ end }}

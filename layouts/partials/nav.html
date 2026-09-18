@@ -1,0 +1,18 @@
+{{- $page := .page -}}
+{{- $variant := .variant -}}
+{{- $items := slice
+  (dict "label" "About" "path" "about/" "section" "about")
+  (dict "label" "Experience" "path" "experience/" "section" "experience")
+  (dict "label" "Projects" "path" "projects/" "section" "projects")
+  (dict "label" "Blog" "path" "blog/" "section" "blog")
+-}}
+<nav class="site-nav site-nav--{{ $variant }}" aria-label="{{ $variant | title }} navigation">
+  {{- range $items }}
+    {{- $isCurrent := or (eq $page.RelPermalink (.path | relURL)) (eq $page.Section .section) -}}
+    <a
+      class="site-nav__link{{ if $isCurrent }} is-active{{ end }}"
+      href="{{ .path | relURL }}"
+      {{ if $isCurrent }}aria-current="page"{{ end }}
+    >{{ .label }}</a>
+  {{- end }}
+</nav>

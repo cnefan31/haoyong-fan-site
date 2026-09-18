@@ -1,0 +1,7 @@
+{{ define "main" }}
+  <section class="page page--projects">
+    {{ partial "page-heading.html" . }}
+    {{ $projects := sort .Pages "Weight" "asc" }}
+    {{ if $projects }}<div class="project-grid">{{ range $projects }}{{ partial "card-project.html" . }}{{ end }}</div>{{ else }}<p>No projects are published yet.</p>{{ end }}
+  </section>
+{{ end }}

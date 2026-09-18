@@ -1,0 +1,9 @@
+<header class="page-heading">
+  {{ with .Params.eyebrow }}
+    <p class="page-heading__eyebrow">{{ . }}</p>
+  {{ end }}
+  <h1>{{ .Title }}</h1>
+  {{ with .Description }}
+    <p class="page-heading__description">{{ . }}</p>
+  {{ end }}
+</header>

@@ -1,0 +1,10 @@
+<article class="post-card">
+  <p class="post-card__date"><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time></p>
+  <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
+  {{ with .Summary }}<p>{{ . | plainify }}</p>{{ end }}
+  {{ with .Params.tags }}
+    <ul class="tag-list" aria-label="Tags">
+      {{ range . }}<li><a href="{{ (printf "/tags/%s/" (. | urlize)) | relURL }}">{{ . }}</a></li>{{ end }}
+    </ul>
+  {{ end }}
+</article>

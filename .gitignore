@@ -1,0 +1,20 @@
+.worktrees/
+
+# Hugo generated output and caches
+public/
+resources/_gen/
+.hugo_build.lock
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Local Node/npm artifacts
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm/
+.yarn/
