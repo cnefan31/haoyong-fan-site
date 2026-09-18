@@ -272,7 +272,7 @@ Using SSH, record the active web server, HTTPS certificate configuration, docume
 
 - [ ] **Step 3: Configure GitHub Secrets**
 
-Set `DEPLOY_HOST=149.88.88.16`, the confirmed deployment user, the confirmed document root as `DEPLOY_PATH`, and the verified private key as `DEPLOY_SSH_KEY`. Prefer a dedicated non-root deployment user with write access limited to the document root. Treat the root password as an emergency-only credential and rotate it after key access is confirmed.
+Set `DEPLOY_HOST` to the confirmed server host, the confirmed deployment user, the confirmed document root as `DEPLOY_PATH`, and the verified private key as `DEPLOY_SSH_KEY`. Prefer a dedicated non-root deployment user with write access limited to the document root. Treat any emergency-only credential as temporary and rotate it after key access is confirmed.
 
 - [ ] **Step 4: Run the workflow manually**
 
