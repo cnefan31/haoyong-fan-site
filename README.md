@@ -97,7 +97,7 @@ test ! -L "$LOCK_DIR"
 if ! mkdir -m 700 -- "$LOCK_DIR" 2>/dev/null; then
   test -d "$LOCK_DIR"
   test ! -L "$LOCK_DIR"
-  test -f "$LOCK_DIR/owner"
+  test -s "$LOCK_DIR/owner"
   IFS= read -r held_owner < "$LOCK_DIR/owner"
   IFS= read -r acquired_epoch < <(sed -n '2p' "$LOCK_DIR/owner")
   case "$held_owner" in
