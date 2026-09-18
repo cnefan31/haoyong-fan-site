@@ -1,25 +1,45 @@
 {{ define "main" }}
+  {{ $about := site.GetPage "/about" }}
   <div class="home-page">
     <section class="home-hero" aria-labelledby="home-title">
-      <p class="status-label">{{ .Params.status | default "SYSTEM ONLINE" }}</p>
-      <h1 id="home-title">{{ site.Title }}</h1>
-      <p class="home-hero__positioning">{{ .Params.heroTitle }}</p>
-      {{ with .Params.heroText }}<p class="home-hero__summary">{{ . }}</p>{{ end }}
-      <nav class="primary-links" aria-label="Primary links">
-        <a href="{{ "projects/" | relURL }}">View projects</a>
-        <a href="{{ "blog/" | relURL }}">READ THE BLOG</a>
-      </nav>
-    </section>
+      <div class="home-hero__intro">
+        <p class="status-label">{{ .Params.status | default "SYSTEM ONLINE" }}</p>
+        <h1 id="home-title">{{ site.Title }}</h1>
+        <p class="home-hero__positioning">{{ .Params.heroTitle }}</p>
+        {{ with .Params.heroText }}<p class="home-hero__summary">{{ . }}</p>{{ end }}
+        <nav class="primary-links" aria-label="Primary links">
+          <a href="{{ "projects/" | relURL }}">View projects</a>
+          <a href="{{ "blog/" | relURL }}">Read the blog</a>
+        </nav>
+      </div>
 
-    <section class="status-panels" aria-label="Current status">
-      <article class="status-panel">
-        <p class="status-panel__label">Current focus</p>
-        <p>{{ .Params.currentFocus }}</p>
-      </article>
-      <article class="status-panel">
-        <p class="status-panel__label">Availability</p>
-        <p>{{ .Params.status | default "SYSTEM ONLINE" }}</p>
-      </article>
+      <aside class="home-hero__panel" aria-label="Current status">
+        <p class="system-panel__title">System status</p>
+        <dl class="system-rows">
+          {{ with .Params.currentFocus }}
+            <div class="system-row">
+              <dt>Focus</dt>
+              <dd>{{ . }}</dd>
+            </div>
+          {{ end }}
+          <div class="system-row">
+            <dt>Status</dt>
+            <dd><span class="status-dot" aria-hidden="true"></span>{{ $.Params.status | default "SYSTEM ONLINE" }}</dd>
+          </div>
+          {{ with $about }}
+            {{ with .Params.skills }}
+              <div class="system-row">
+                <dt>Stack</dt>
+                <dd>
+                  <ul class="tag-list">
+                    {{ range . }}<li>{{ . }}</li>{{ end }}
+                  </ul>
+                </dd>
+              </div>
+            {{ end }}
+          {{ end }}
+        </dl>
+      </aside>
     </section>
 
     {{ $projects := where (where site.RegularPages "Section" "projects") "Params.featured" true }}
