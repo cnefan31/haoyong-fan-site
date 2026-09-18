@@ -581,6 +581,7 @@ h3 {
   min-width: 0;
   color: var(--color-text);
   font-size: 1.02rem;
+  overflow-wrap: anywhere;
 }
 
 .prose > *:first-child {
