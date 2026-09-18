@@ -107,6 +107,7 @@ jobs:
             test -d "$lock_dir"
             test ! -L "$lock_dir"
             test -s "$lock_dir/owner"
+            test ! -L "$lock_dir/owner"
             IFS= read -r held_owner < "$lock_dir/owner"
             IFS= read -r acquired_epoch < <(sed -n '2p' "$lock_dir/owner")
             case "$held_owner" in
@@ -136,10 +137,30 @@ jobs:
             rm -rf -- "$recovery_dir"
             mkdir -m 700 -- "$lock_dir"
           fi
-          cleanup_lock() { rm -rf -- "$lock_dir"; }
+          cleanup_lock() {
+            if ! test -s "$lock_dir/owner" || test -L "$lock_dir/owner"; then
+              return 0
+            fi
+            IFS= read -r cleanup_owner < "$lock_dir/owner" || return 0
+            case "$cleanup_owner" in
+              ''|*[!A-Za-z0-9_.:-]*) return 0 ;;
+            esac
+            if test "$cleanup_owner" = "$lock_owner"; then
+              rm -rf -- "$lock_dir"
+            fi
+          }
           trap cleanup_lock EXIT
-          printf '%s\n%s\n%s\nlease_seconds=%s\n' "$lock_owner" "$(date +%s)" "$(hostname)" "$lock_lease_seconds" > "$lock_dir/owner"
-          trap - EXIT
+          owner_tmp="${lock_dir}.owner-${lock_owner}"
+          test ! -e "$owner_tmp"
+          printf '%s\n%s\n%s\nlease_seconds=%s\n' "$lock_owner" "$(date +%s)" "$(hostname)" "$lock_lease_seconds" > "$owner_tmp"
+          mv -T -- "$owner_tmp" "$lock_dir/owner"
+          test -s "$lock_dir/owner"
+          test ! -L "$lock_dir/owner"
+          IFS= read -r committed_owner < "$lock_dir/owner"
+          case "$committed_owner" in
+            ''|*[!A-Za-z0-9_.:-]*) exit 1 ;;
+          esac
+          test "$committed_owner" = "$lock_owner"
           REMOTE_SCRIPT
           } | ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -s
 

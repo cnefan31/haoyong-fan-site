@@ -70,6 +70,8 @@ test ! -e "$BACKUP"
 mkdir -m 755 -- "$RELEASE_ROOT"
 mkdir -m 755 -- "$BASELINE"
 cp -a -- "$DEPLOY_PATH"/. "$BASELINE"/
+test -f "$BASELINE/index.html"
+test ! -L "$BASELINE/index.html"
 mv -T -- "$DEPLOY_PATH" "$BACKUP"
 test -f "$BACKUP/index.html"
 ln -s -- "$BASELINE" "$DEPLOY_PATH"
@@ -124,15 +126,27 @@ if ! mkdir -m 700 -- "$LOCK_DIR" 2>/dev/null; then
   mkdir -m 700 -- "$LOCK_DIR"
 fi
 cleanup_lock() {
-  if test -d "$LOCK_DIR" && test ! -L "$LOCK_DIR" && test -f "$LOCK_DIR/owner"; then
-    IFS= read -r current_owner < "$LOCK_DIR/owner"
+  if test -s "$LOCK_DIR/owner" && test ! -L "$LOCK_DIR/owner"; then
+    IFS= read -r current_owner < "$LOCK_DIR/owner" || return 0
+    case "$current_owner" in
+      ''|*[!A-Za-z0-9_.:-]*) return 0 ;;
+    esac
     if test "$current_owner" = "$LOCK_OWNER"; then
       rm -rf -- "$LOCK_DIR"
     fi
   fi
 }
 trap cleanup_lock EXIT
-printf '%s\n%s\n%s\nlease_seconds=%s\n' "$LOCK_OWNER" "$(date +%s)" "$(hostname)" "$LOCK_LEASE_SECONDS" > "$LOCK_DIR/owner"
+OWNER_TMP="${LOCK_DIR}.owner-${LOCK_OWNER}"
+test ! -e "$OWNER_TMP"
+printf '%s\n%s\n%s\nlease_seconds=%s\n' "$LOCK_OWNER" "$(date +%s)" "$(hostname)" "$LOCK_LEASE_SECONDS" > "$OWNER_TMP"
+mv -T -- "$OWNER_TMP" "$LOCK_DIR/owner"
+test -s "$LOCK_DIR/owner"
+IFS= read -r COMMITTED_OWNER < "$LOCK_DIR/owner"
+case "$COMMITTED_OWNER" in
+  ''|*[!A-Za-z0-9_.:-]*) exit 1 ;;
+esac
+test "$COMMITTED_OWNER" = "$LOCK_OWNER"
 
 SOURCE="${DEPLOY_PATH}.backup-<timestamp>-<run>-<attempt>"
 BACKUP_SOURCE="$SOURCE"
@@ -144,6 +158,18 @@ test ! -L "$RELEASE_ROOT"
 RELEASE_ROOT_REAL="$(readlink -f -- "$RELEASE_ROOT")"
 test -n "$RELEASE_ROOT_REAL"
 test "$RELEASE_ROOT_REAL" != "/"
+test -L "$DEPLOY_PATH"
+EXPECTED_CURRENT_TARGET="$(readlink -f -- "$DEPLOY_PATH")"
+test -n "$EXPECTED_CURRENT_TARGET"
+test -d "$EXPECTED_CURRENT_TARGET"
+test "$EXPECTED_CURRENT_TARGET" != "$RELEASE_ROOT_REAL"
+case "$EXPECTED_CURRENT_TARGET/" in
+  "$RELEASE_ROOT_REAL"/*) ;;
+  *)
+    printf '%s\n' "refusing external current DEPLOY_PATH target: $EXPECTED_CURRENT_TARGET" >&2
+    exit 1
+    ;;
+esac
 
 if test -n "$BACKUP_SOURCE"; then
   backup_parent_configured="$(dirname -- "$DEPLOY_PATH")"
@@ -198,6 +224,19 @@ esac
 test -f "$SOURCE/index.html"
 test ! -L "$SOURCE/index.html"
 
+test -L "$DEPLOY_PATH"
+CURRENT_TARGET="$(readlink -f -- "$DEPLOY_PATH")"
+test -n "$CURRENT_TARGET"
+test -d "$CURRENT_TARGET"
+test "$CURRENT_TARGET" = "$EXPECTED_CURRENT_TARGET"
+test "$CURRENT_TARGET" != "$RELEASE_ROOT_REAL"
+case "$CURRENT_TARGET/" in
+  "$RELEASE_ROOT_REAL"/*) ;;
+  *)
+    printf '%s\n' "refusing changed DEPLOY_PATH target: $CURRENT_TARGET" >&2
+    exit 1
+    ;;
+esac
 temporary_link="${DEPLOY_PATH}.rollback-$$"
 test ! -e "$temporary_link"
 test ! -L "$temporary_link"
