@@ -138,7 +138,16 @@ jobs:
             mkdir -m 700 -- "$lock_dir"
           fi
           cleanup_lock() {
-            if ! test -f "$lock_dir/owner" || test -L "$lock_dir/owner" || ! test -s "$lock_dir/owner"; then
+            # This trap only runs while this script still owns the freshly created
+            # lock, so it is safe to discard a partially written owner file.
+            if test -L "$lock_dir"; then
+              return 0
+            fi
+            if test ! -e "$lock_dir/owner"; then
+              rm -rf -- "$lock_dir"
+              return 0
+            fi
+            if test -L "$lock_dir/owner" || ! test -s "$lock_dir/owner"; then
               return 0
             fi
             IFS= read -r cleanup_owner < "$lock_dir/owner" || return 0
@@ -162,6 +171,10 @@ jobs:
             ''|*[!A-Za-z0-9_.:-]*) exit 1 ;;
           esac
           test "$committed_owner" = "$lock_owner"
+          # Acquisition succeeded: disarm the failure cleanup so the lock persists
+          # across the remaining deployment steps. It is released only by the
+          # final always() step or recovered after the lease expires.
+          trap - EXIT
           REMOTE_SCRIPT
           } | ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -s
 
@@ -194,6 +207,7 @@ jobs:
           test -d "$lock_dir"
           test ! -L "$lock_dir"
           test -f "$lock_dir/owner"
+          test ! -L "$lock_dir/owner"
           IFS= read -r lock_owner_on_host < "$lock_dir/owner"
           test "$lock_owner_on_host" = "$lock_owner"
           if ! test -L "$deploy_path"; then
@@ -289,6 +303,7 @@ jobs:
           test -d "$lock_dir"
           test ! -L "$lock_dir"
           test -f "$lock_dir/owner"
+          test ! -L "$lock_dir/owner"
           IFS= read -r lock_owner_on_host < "$lock_dir/owner"
           test "$lock_owner_on_host" = "$lock_owner"
           test -L "$deploy_path"
@@ -400,6 +415,7 @@ jobs:
           test -d "$lock_dir"
           test ! -L "$lock_dir"
           test -f "$lock_dir/owner"
+          test ! -L "$lock_dir/owner"
           IFS= read -r lock_owner_on_host < "$lock_dir/owner"
           test "$lock_owner_on_host" = "$lock_owner"
           rm -rf -- "$lock_dir"
