@@ -100,6 +100,12 @@ if ! mkdir -m 700 -- "$LOCK_DIR" 2>/dev/null; then
   test -f "$LOCK_DIR/owner"
   IFS= read -r held_owner < "$LOCK_DIR/owner"
   IFS= read -r acquired_epoch < <(sed -n '2p' "$LOCK_DIR/owner")
+  case "$held_owner" in
+    ''|*[!A-Za-z0-9_.:-]*)
+      printf '%s\n' "deployment lock has invalid owner metadata" >&2
+      exit 1
+      ;;
+  esac
   case "$acquired_epoch" in
     ''|*[!0-9]*)
       printf '%s\n' "deployment lock has invalid lease metadata: $held_owner" >&2
