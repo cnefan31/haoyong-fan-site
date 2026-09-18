@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  HUGO_VERSION: 0.150.0
+  HUGO_VERSION: 0.166.0
   DEPLOY_LOCK_LEASE_SECONDS: 1800
 
 jobs:

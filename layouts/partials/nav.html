@@ -13,6 +13,6 @@
       class="site-nav__link{{ if $isCurrent }} is-active{{ end }}"
       href="{{ .path | relURL }}"
       {{ if $isCurrent }}aria-current="page"{{ end }}
-    >{{ .label | htmlEscape }}</a>
+    >{{ .label }}</a>
   {{- end }}
 </nav>

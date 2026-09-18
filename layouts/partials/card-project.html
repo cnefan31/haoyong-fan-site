@@ -1,18 +1,18 @@
 <article class="project-card">
   <div class="project-card__body">
     <p class="project-card__index">{{ printf "%02d" .Params.weight }}</p>
-    <h3><a href="{{ .RelPermalink | htmlEscape }}">{{ .Title | htmlEscape }}</a></h3>
+    <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
     {{ with .Params.description }}
-      <p>{{ . | htmlEscape }}</p>
+      <p>{{ . }}</p>
     {{ end }}
     {{ with .Params.technologies }}
       <ul class="tag-list" aria-label="Technologies">
-        {{ range . }}<li>{{ . | htmlEscape }}</li>{{ end }}
+        {{ range . }}<li>{{ . }}</li>{{ end }}
       </ul>
     {{ end }}
   </div>
   {{ $link := strings.TrimSpace (printf "%v" (.Params.link | default "")) }}
   {{ if and $link (or (strings.HasPrefix (lower $link) "https://") (strings.HasPrefix (lower $link) "http://")) }}
-    <a class="project-card__link" href="{{ $link | htmlEscape }}" target="_blank" rel="noopener noreferrer">View project</a>
+    <a class="project-card__link" href="{{ $link }}" target="_blank" rel="noopener noreferrer">View project</a>
   {{ end }}
 </article>

@@ -6,14 +6,14 @@
 {{- end }}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ $title | htmlEscape }}</title>
-<meta name="description" content="{{ $description | htmlEscape }}">
-<link rel="canonical" href="{{ .Permalink | htmlEscape }}">
-<meta property="og:title" content="{{ $title | htmlEscape }}">
-<meta property="og:description" content="{{ $description | htmlEscape }}">
+<title>{{ $title }}</title>
+<meta name="description" content="{{ $description }}">
+<link rel="canonical" href="{{ .Permalink }}">
+<meta property="og:title" content="{{ $title }}">
+<meta property="og:description" content="{{ $description }}">
 <meta property="og:type" content="{{ if eq .Section "blog" }}article{{ else }}website{{ end }}">
-<meta property="og:url" content="{{ .Permalink | htmlEscape }}">
-<meta property="og:image" content="{{ $image | htmlEscape }}">
-<meta property="og:site_name" content="{{ site.Title | htmlEscape }}">
+<meta property="og:url" content="{{ .Permalink }}">
+<meta property="og:image" content="{{ $image }}">
+<meta property="og:site_name" content="{{ site.Title }}">
 <link rel="icon" type="image/svg+xml" href="{{ "favicon.svg" | relURL }}">
 <link rel="stylesheet" href="{{ "css/site.css" | relURL }}">

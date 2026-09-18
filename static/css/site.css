@@ -472,6 +472,11 @@ h3 {
   color: var(--color-accent-alt);
 }
 
+.tag-list__count {
+  margin-left: var(--space-1);
+  color: var(--color-muted);
+}
+
 /* Interior pages and article content */
 .page {
   min-width: 0;

@@ -1,24 +1,24 @@
 {{ define "main" }}
   <div class="home-page">
     <section class="home-hero" aria-labelledby="home-title">
-      <p class="status-label">{{ .Params.status | default "SYSTEM ONLINE" | htmlEscape }}</p>
-      <h1 id="home-title">{{ site.Title | htmlEscape }}</h1>
-      <p class="home-hero__positioning">{{ .Params.heroTitle | htmlEscape }}</p>
-      {{ with .Params.heroText }}<p class="home-hero__summary">{{ . | htmlEscape }}</p>{{ end }}
+      <p class="status-label">{{ .Params.status | default "SYSTEM ONLINE" }}</p>
+      <h1 id="home-title">{{ site.Title }}</h1>
+      <p class="home-hero__positioning">{{ .Params.heroTitle }}</p>
+      {{ with .Params.heroText }}<p class="home-hero__summary">{{ . }}</p>{{ end }}
       <nav class="primary-links" aria-label="Primary links">
-        <a href="{{ "projects/" | relURL | htmlEscape }}">View projects</a>
-        <a href="{{ "blog/" | relURL | htmlEscape }}">READ THE BLOG</a>
+        <a href="{{ "projects/" | relURL }}">View projects</a>
+        <a href="{{ "blog/" | relURL }}">READ THE BLOG</a>
       </nav>
     </section>
 
     <section class="status-panels" aria-label="Current status">
       <article class="status-panel">
         <p class="status-panel__label">Current focus</p>
-        <p>{{ .Params.currentFocus | htmlEscape }}</p>
+        <p>{{ .Params.currentFocus }}</p>
       </article>
       <article class="status-panel">
         <p class="status-panel__label">Availability</p>
-        <p>{{ .Params.status | default "SYSTEM ONLINE" | htmlEscape }}</p>
+        <p>{{ .Params.status | default "SYSTEM ONLINE" }}</p>
       </article>
     </section>
 
