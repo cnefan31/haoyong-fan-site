@@ -54,15 +54,22 @@ jobs:
       - name: Acquire remote deployment lock
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
           set -euo pipefail
+          case "$DEPLOY_PORT" in
+            ''|*[!0-9]*)
+              printf '%s\n' "DEPLOY_PORT must be a numeric SSH port" >&2
+              exit 1
+              ;;
+          esac
           ssh_dir="$RUNNER_TEMP/deploy-ssh"
           lock_owner="github-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${GITHUB_JOB}"
           lock_lease_seconds="$DEPLOY_LOCK_LEASE_SECONDS"
           printf '%s\n' "$lock_owner" > "$RUNNER_TEMP/deploy-lock-owner"
-          ssh_options=(-i "$ssh_dir/id_deploy" -o IdentitiesOnly=yes -o UserKnownHostsFile="$ssh_dir/known_hosts" -o StrictHostKeyChecking=yes -o LogLevel=ERROR)
+          ssh_options=(-i "$ssh_dir/id_deploy" -p "$DEPLOY_PORT" -o IdentitiesOnly=yes -o UserKnownHostsFile="$ssh_dir/known_hosts" -o StrictHostKeyChecking=yes -o LogLevel=ERROR)
 
           {
             printf 'deploy_path=%q\n' "$DEPLOY_PATH"
@@ -181,6 +188,7 @@ jobs:
       - name: Prepare remote release directory
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
@@ -188,7 +196,7 @@ jobs:
           ssh_dir="$RUNNER_TEMP/deploy-ssh"
           release_id="$(date -u +%Y%m%dT%H%M%SZ)-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           printf '%s\n' "$release_id" > "$RUNNER_TEMP/release-id"
-          ssh_options=(-i "$ssh_dir/id_deploy" -o IdentitiesOnly=yes -o UserKnownHostsFile="$ssh_dir/known_hosts" -o StrictHostKeyChecking=yes -o LogLevel=ERROR)
+          ssh_options=(-i "$ssh_dir/id_deploy" -p "$DEPLOY_PORT" -o IdentitiesOnly=yes -o UserKnownHostsFile="$ssh_dir/known_hosts" -o StrictHostKeyChecking=yes -o LogLevel=ERROR)
 
           # DEPLOY_PATH is sent as a shell-quoted assignment over stdin, not embedded
           # in a remote command. The server must already have its web server configured
@@ -263,6 +271,7 @@ jobs:
       - name: Upload generated site
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
@@ -270,8 +279,8 @@ jobs:
           ssh_dir="$RUNNER_TEMP/deploy-ssh"
           release_id="$(<"$RUNNER_TEMP/release-id")"
           release_root="${DEPLOY_PATH}.releases"
-          printf -v ssh_options 'ssh -i %q -o IdentitiesOnly=yes -o UserKnownHostsFile=%q -o StrictHostKeyChecking=yes -o LogLevel=ERROR' \
-            "$ssh_dir/id_deploy" "$ssh_dir/known_hosts"
+          printf -v ssh_options 'ssh -i %q -p %q -o IdentitiesOnly=yes -o UserKnownHostsFile=%q -o StrictHostKeyChecking=yes -o LogLevel=ERROR' \
+            "$ssh_dir/id_deploy" "$DEPLOY_PORT" "$ssh_dir/known_hosts"
           rsync --archive --delete --delay-updates --quiet \
             -e "$ssh_options" \
             public/ "$DEPLOY_USER@$DEPLOY_HOST:${release_root}/release-${release_id}/"
@@ -279,6 +288,7 @@ jobs:
       - name: Activate and retain release
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
@@ -286,7 +296,7 @@ jobs:
           ssh_dir="$RUNNER_TEMP/deploy-ssh"
           release_id="$(<"$RUNNER_TEMP/release-id")"
           expected_current_dir="$(<"$RUNNER_TEMP/expected-current")"
-          ssh_options=(-i "$ssh_dir/id_deploy" -o IdentitiesOnly=yes -o UserKnownHostsFile="$ssh_dir/known_hosts" -o StrictHostKeyChecking=yes -o LogLevel=ERROR)
+          ssh_options=(-i "$ssh_dir/id_deploy" -p "$DEPLOY_PORT" -o IdentitiesOnly=yes -o UserKnownHostsFile="$ssh_dir/known_hosts" -o StrictHostKeyChecking=yes -o LogLevel=ERROR)
 
           # Required secrets: DEPLOY_HOST, DEPLOY_USER, DEPLOY_PATH, DEPLOY_SSH_KEY,
           # and DEPLOY_KNOWN_HOSTS. Populate DEPLOY_KNOWN_HOSTS after verifying the
@@ -389,6 +399,7 @@ jobs:
         if: always()
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
@@ -398,7 +409,7 @@ jobs:
             exit 0
           fi
           lock_owner="$(<"$RUNNER_TEMP/deploy-lock-owner")"
-          ssh_options=(-i "$ssh_dir/id_deploy" -o IdentitiesOnly=yes -o UserKnownHostsFile="$ssh_dir/known_hosts" -o StrictHostKeyChecking=yes -o LogLevel=ERROR)
+          ssh_options=(-i "$ssh_dir/id_deploy" -p "$DEPLOY_PORT" -o IdentitiesOnly=yes -o UserKnownHostsFile="$ssh_dir/known_hosts" -o StrictHostKeyChecking=yes -o LogLevel=ERROR)
 
           {
             printf 'deploy_path=%q\n' "$DEPLOY_PATH"

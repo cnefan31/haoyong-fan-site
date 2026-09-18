@@ -98,6 +98,7 @@ git push origin main
 Once `.github/workflows/deploy.yml` and the repository's GitHub Actions Secrets are configured, pushing to `main` triggers GitHub Actions to build the site with Hugo and deploy the generated files over SSH. The repository must have these GitHub Actions Secrets configured:
 
 - `DEPLOY_HOST` — the deployment server hostname
+- `DEPLOY_PORT` — the numeric SSH port on the deployment server
 - `DEPLOY_USER` — a dedicated non-root deployment user
 - `DEPLOY_SSH_KEY` — the private key for that deployment user
 - `DEPLOY_KNOWN_HOSTS` — the verified SSH host key entry for the deployment server

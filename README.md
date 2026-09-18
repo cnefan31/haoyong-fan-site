@@ -37,10 +37,13 @@ The workflow builds the site with Hugo Extended, backs up the current document r
 Configure these names in the repository or environment secrets. Do not commit or document their values:
 
 - `DEPLOY_HOST`
+- `DEPLOY_PORT`
 - `DEPLOY_USER`
 - `DEPLOY_PATH`
 - `DEPLOY_SSH_KEY`
 - `DEPLOY_KNOWN_HOSTS`
+
+`DEPLOY_PORT` is the numeric SSH port on the deployment host. `DEPLOY_KNOWN_HOSTS` must use the `[host]:port` entry format when the port is not 22.
 
 `DEPLOY_KNOWN_HOSTS` must contain the server host key verified out of band. The workflow uses strict host-key checking and does not disable verification.
 
