@@ -126,7 +126,7 @@ if ! mkdir -m 700 -- "$LOCK_DIR" 2>/dev/null; then
   mkdir -m 700 -- "$LOCK_DIR"
 fi
 cleanup_lock() {
-  if test -s "$LOCK_DIR/owner" && test ! -L "$LOCK_DIR/owner"; then
+  if test -f "$LOCK_DIR/owner" && test ! -L "$LOCK_DIR/owner" && test -s "$LOCK_DIR/owner"; then
     IFS= read -r current_owner < "$LOCK_DIR/owner" || return 0
     case "$current_owner" in
       ''|*[!A-Za-z0-9_.:-]*) return 0 ;;
@@ -139,6 +139,7 @@ cleanup_lock() {
 trap cleanup_lock EXIT
 OWNER_TMP="${LOCK_DIR}.owner-${LOCK_OWNER}"
 test ! -e "$OWNER_TMP"
+test ! -L "$OWNER_TMP"
 printf '%s\n%s\n%s\nlease_seconds=%s\n' "$LOCK_OWNER" "$(date +%s)" "$(hostname)" "$LOCK_LEASE_SECONDS" > "$OWNER_TMP"
 mv -T -- "$OWNER_TMP" "$LOCK_DIR/owner"
 test -s "$LOCK_DIR/owner"
@@ -224,6 +225,12 @@ esac
 test -f "$SOURCE/index.html"
 test ! -L "$SOURCE/index.html"
 
+temporary_link="${DEPLOY_PATH}.rollback-$$"
+test ! -e "$temporary_link"
+test ! -L "$temporary_link"
+ln -s -- "$SOURCE" "$temporary_link"
+test -f "$temporary_link/index.html"
+test ! -L "$temporary_link/index.html"
 test -L "$DEPLOY_PATH"
 CURRENT_TARGET="$(readlink -f -- "$DEPLOY_PATH")"
 test -n "$CURRENT_TARGET"
@@ -237,10 +244,6 @@ case "$CURRENT_TARGET/" in
     exit 1
     ;;
 esac
-temporary_link="${DEPLOY_PATH}.rollback-$$"
-test ! -e "$temporary_link"
-test ! -L "$temporary_link"
-ln -s -- "$SOURCE" "$temporary_link"
 mv -Tf -- "$temporary_link" "$DEPLOY_PATH"
 ```
 
