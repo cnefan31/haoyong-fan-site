@@ -65,13 +65,16 @@ BASELINE="${RELEASE_ROOT}/release-initial"
 
 test -d "$DEPLOY_PATH"
 test ! -L "$DEPLOY_PATH"
+test ! -e "$RELEASE_ROOT"
+test ! -e "$BACKUP"
 mkdir -m 755 -- "$RELEASE_ROOT"
-mkdir -m 755 -- "$BACKUP"
-cp -a -- "$DEPLOY_PATH"/. "$BACKUP"/
 mkdir -m 755 -- "$BASELINE"
 cp -a -- "$DEPLOY_PATH"/. "$BASELINE"/
-mv -- "$DEPLOY_PATH" "$BACKUP"
+mv -T -- "$DEPLOY_PATH" "$BACKUP"
+test -f "$BACKUP/index.html"
 ln -s -- "$BASELINE" "$DEPLOY_PATH"
+test -L "$DEPLOY_PATH"
+test "$(readlink -f -- "$DEPLOY_PATH")" = "$(readlink -f -- "$BASELINE")"
 ```
 
 Verify `DEPLOY_PATH` resolves to `BASELINE` and contains a regular `index.html` before enabling the workflow. After this setup exists, every workflow deployment copies the active in-root release to a timestamped backup, uploads to a new release directory, and atomically switches the live symlink. A real directory or missing `DEPLOY_PATH` fails before mutation.
@@ -114,7 +117,14 @@ if ! mkdir -m 700 -- "$LOCK_DIR" 2>/dev/null; then
   rm -rf -- "$recovery_dir"
   mkdir -m 700 -- "$LOCK_DIR"
 fi
-cleanup_lock() { rm -rf -- "$LOCK_DIR"; }
+cleanup_lock() {
+  if test -d "$LOCK_DIR" && test ! -L "$LOCK_DIR" && test -f "$LOCK_DIR/owner"; then
+    IFS= read -r current_owner < "$LOCK_DIR/owner"
+    if test "$current_owner" = "$LOCK_OWNER"; then
+      rm -rf -- "$LOCK_DIR"
+    fi
+  fi
+}
 trap cleanup_lock EXIT
 printf '%s\n%s\n%s\nlease_seconds=%s\n' "$LOCK_OWNER" "$(date +%s)" "$(hostname)" "$LOCK_LEASE_SECONDS" > "$LOCK_DIR/owner"
 

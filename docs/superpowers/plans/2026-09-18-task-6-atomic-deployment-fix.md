@@ -34,7 +34,7 @@
 
 - [ ] **Step 2: Replace backup-and-copy activation**
 
-  Require `${DEPLOY_PATH}.releases/release-${release_id}/index.html`, create a unique temporary symlink beside `DEPLOY_PATH` pointing to the release, validate the link target and index, then atomically replace `DEPLOY_PATH` with `mv -Tf`. On first deployment this replaces the baseline symlink only after the release is valid. Fail before activation if the stable path changes to an unsupported type. Remove the temporary symlink only after a successful swap.
+  Require `${DEPLOY_PATH}.releases/release-${release_id}/index.html`, create a unique temporary symlink beside the already-prepared `DEPLOY_PATH` symlink, validate the link target and index, then atomically replace `DEPLOY_PATH` with `mv -Tf`. Fail before activation if the stable path changes to an unsupported type. Remove the temporary symlink only after a successful swap.
 
 - [ ] **Step 3: Add retention pruning after successful activation**
 
@@ -65,7 +65,7 @@
 
 - [ ] **Step 2: Inspect the final diff and status**
 
-  Confirm only the intended workflow and design/plan documentation changed, and confirm the workflow's sequence is backup, upload, validate, activate, prune, smoke-check.
+  Confirm only the intended workflow and documentation changed, the one-time operator baseline setup is documented, and the workflow's sequence is acquire lock, validate prepared symlink, backup active release, upload, validate, activate, prune, smoke-check, release lock.
 
 - [ ] **Step 3: Commit the implementation**
 
