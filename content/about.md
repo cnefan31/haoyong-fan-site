@@ -11,9 +11,7 @@ skills:
   - Kubernetes
   - AWS
 contacts:
-  GitHub: ""
-  Email: ""
-  Twitter: ""
+  GitHub: "https://github.com/cnefan31"
 ---
 
 我负责从 API、前端界面到云原生平台与开发者工具的全栈开发。

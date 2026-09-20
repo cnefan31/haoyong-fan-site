@@ -1,18 +1,26 @@
-<article class="project-card">
-  <div class="project-card__body">
-    <p class="project-card__index">{{ printf "%02d" .Params.weight }}</p>
-    <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
-    {{ with .Params.description }}
-      <p>{{ . }}</p>
-    {{ end }}
-    {{ with .Params.technologies }}
-      <ul class="tag-list" aria-label="技术栈">
-        {{ range . }}<li>{{ . }}</li>{{ end }}
-      </ul>
-    {{ end }}
+{{ $link := strings.TrimSpace (printf "%v" (.Params.link | default "")) }}
+{{ $external := and $link (or (strings.HasPrefix (lower $link) "https://") (strings.HasPrefix (lower $link) "http://")) }}
+{{ $href := .RelPermalink }}
+{{ if $external }}{{ $href = $link }}{{ end }}
+<a
+  class="project-card"
+  href="{{ $href }}"
+  {{ if $external }}target="_blank" rel="noopener noreferrer"{{ end }}
+  aria-label="{{ .Title }}"
+>
+  <div class="card__meta">
+    <span class="card__category">{{ printf "%02d" .Params.weight }}</span>
   </div>
-  {{ $link := strings.TrimSpace (printf "%v" (.Params.link | default "")) }}
-  {{ if and $link (or (strings.HasPrefix (lower $link) "https://") (strings.HasPrefix (lower $link) "http://")) }}
-    <a class="project-card__link" href="{{ $link }}" target="_blank" rel="noopener noreferrer">查看项目</a>
+  <h3 class="card__title">{{ .Title }}</h3>
+  {{ with .Params.description }}<p class="card__description">{{ . }}</p>{{ end }}
+  {{ with .Params.technologies }}
+    <ul class="card__tags" aria-label="技术栈">
+      {{ range . }}<li>{{ . }}</li>{{ end }}
+    </ul>
   {{ end }}
-</article>
+  <span class="card__arrow" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12h14M12 5l7 7-7 7" />
+    </svg>
+  </span>
+</a>

@@ -3,6 +3,8 @@
     {{ partial "page-heading.html" . }}
     {{ $posts := where .Pages "Draft" false }}
     {{ $posts = sort $posts "Date" "desc" }}
-    {{ if $posts }}<div class="post-list">{{ range $posts }}{{ partial "card-post.html" . }}{{ end }}</div>{{ else }}<p>暂无文章。</p>{{ end }}
+    {{ if $posts }}
+      <div class="card-grid">{{ range $posts }}{{ partial "card-post.html" . }}{{ end }}</div>
+    {{ else }}<p>暂无文章。</p>{{ end }}
   </section>
 {{ end }}

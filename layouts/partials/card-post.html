@@ -1,10 +1,17 @@
-<article class="post-card">
-  <p class="post-card__date"><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006年1月2日" }}</time></p>
-  <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
-  {{ with .Summary }}<p>{{ . | plainify }}</p>{{ end }}
+<a class="post-card" href="{{ .RelPermalink }}" aria-label="阅读《{{ .Title }}》">
+  <div class="card__meta">
+    <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006年1月2日" }}</time>
+  </div>
+  <h3 class="card__title">{{ .Title }}</h3>
+  {{ with .Summary }}<p class="card__description">{{ . | plainify }}</p>{{ end }}
   {{ with .Params.tags }}
-    <ul class="tag-list" aria-label="标签">
-      {{ range . }}<li><a href="{{ (printf "/tags/%s/" (. | urlize)) | relURL }}">{{ partial "tag-label.html" . }}</a></li>{{ end }}
+    <ul class="card__tags" aria-label="标签">
+      {{ range . }}<li>{{ partial "tag-label.html" . }}</li>{{ end }}
     </ul>
   {{ end }}
-</article>
+  <span class="card__arrow" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12h14M12 5l7 7-7 7" />
+    </svg>
+  </span>
+</a>

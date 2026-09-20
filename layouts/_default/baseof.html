@@ -2,15 +2,28 @@
 <html lang="{{ site.Language.Lang }}">
   <head>
     {{ partial "head.html" . }}
+    {{/* Set the theme before first paint to avoid a flash of the wrong theme. */}}
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme");
+          var theme = stored || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+          document.documentElement.setAttribute("data-theme", theme);
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      })();
+    </script>
   </head>
   <body>
     {{ partial "header.html" . }}
 
-    <main id="main-content" class="site-main">
+    <main id="main-content" class="site-wrap">
       {{ block "main" . }}{{ end }}
     </main>
 
     {{ partial "footer.html" . }}
+    {{ partial "scroll-top.html" . }}
     <script src="{{ "js/site.js" | relURL }}" defer></script>
   </body>
 </html>

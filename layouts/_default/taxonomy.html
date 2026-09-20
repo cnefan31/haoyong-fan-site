@@ -6,11 +6,11 @@
     </header>
     {{ $terms := .Pages }}
     {{ if $terms }}
-      <ul class="tag-list">
+      <ul class="pill-list">
         {{ range $terms }}
           <li>
             <a href="{{ .RelPermalink }}">{{ partial "tag-label.html" .Data.Term }}</a>
-            <span class="tag-list__count">{{ len .Pages }}</span>
+            ({{ len .Pages }})
           </li>
         {{ end }}
       </ul>

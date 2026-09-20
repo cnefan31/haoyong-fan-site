@@ -1,18 +1,19 @@
 {{- $page := .page -}}
-{{- $variant := .variant -}}
 {{- $items := slice
   (dict "label" "关于" "path" "about/" "section" "about")
   (dict "label" "经历" "path" "experience/" "section" "experience")
   (dict "label" "项目" "path" "projects/" "section" "projects")
   (dict "label" "博客" "path" "blog/" "section" "blog")
 -}}
-<nav class="site-nav site-nav--{{ $variant }}" aria-label="{{ if eq $variant "mobile" }}移动端导航{{ else }}主导航{{ end }}">
+<ul id="site-menu" class="site-nav__list">
   {{- range $items }}
     {{- $isCurrent := or (eq $page.RelPermalink (.path | relURL)) (eq $page.Section .section) -}}
-    <a
-      class="site-nav__link{{ if $isCurrent }} is-active{{ end }}"
-      href="{{ .path | relURL }}"
-      {{ if $isCurrent }}aria-current="page"{{ end }}
-    >{{ .label }}</a>
+    <li>
+      <a
+        class="site-nav__link{{ if $isCurrent }} is-active{{ end }}"
+        href="{{ .path | relURL }}"
+        {{ if $isCurrent }}aria-current="page"{{ end }}
+      >{{ .label }}</a>
+    </li>
   {{- end }}
-</nav>
+</ul>

@@ -2,6 +2,6 @@
   <section class="page page--projects">
     {{ partial "page-heading.html" . }}
     {{ $projects := sort .Pages "Weight" "asc" }}
-    {{ if $projects }}<div class="project-grid">{{ range $projects }}{{ partial "card-project.html" . }}{{ end }}</div>{{ else }}<p>暂无项目。</p>{{ end }}
+    {{ if $projects }}<div class="card-grid">{{ range $projects }}{{ partial "card-project.html" . }}{{ end }}</div>{{ else }}<p>暂无项目。</p>{{ end }}
   </section>
 {{ end }}

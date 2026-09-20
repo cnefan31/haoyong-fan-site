@@ -7,7 +7,7 @@
     {{ with .Params.skills }}
       <section class="skills" aria-labelledby="skills-title">
         <h2 id="skills-title">技能</h2>
-        <ul class="tag-list">{{ range . }}<li>{{ . }}</li>{{ end }}</ul>
+        <ul class="pill-list">{{ range . }}<li>{{ . }}</li>{{ end }}</ul>
       </section>
     {{ end }}
   </article>

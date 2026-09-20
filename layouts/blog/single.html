@@ -1,15 +1,19 @@
 {{ define "main" }}
   <article class="page page--post">
     <header class="post-header">
-      <p class="post-header__date"><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006年1月2日" }}</time></p>
+      <p class="page-heading__eyebrow">{{ .Date.Format "2006年1月2日" }}</p>
       <h1>{{ .Title }}</h1>
-      {{ with .Params.tags }}<ul class="tag-list" aria-label="标签">{{ range . }}<li><a href="{{ (printf "/tags/%s/" (. | urlize)) | relURL }}">{{ partial "tag-label.html" . }}</a></li>{{ end }}</ul>{{ end }}
+      {{ with .Params.tags }}
+        <ul class="card__tags" aria-label="标签">
+          {{ range . }}<li><a href="{{ (printf "/tags/%s/" (. | urlize)) | relURL }}">{{ partial "tag-label.html" . }}</a></li>{{ end }}
+        </ul>
+      {{ end }}
     </header>
     <div class="prose">{{ .Content }}</div>
     <nav class="post-navigation" aria-label="文章导航">
       {{ with .PrevInSection }}<a href="{{ .RelPermalink }}">上一篇：{{ .Title }}</a>{{ end }}
       {{ with .NextInSection }}<a href="{{ .RelPermalink }}">下一篇：{{ .Title }}</a>{{ end }}
     </nav>
-    <p><a href="{{ "blog/" | relURL }}">返回博客</a></p>
+    <p><a href="{{ "blog/" | relURL }}">← 返回博客</a></p>
   </article>
 {{ end }}

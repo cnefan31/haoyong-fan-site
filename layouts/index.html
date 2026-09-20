@@ -1,75 +1,65 @@
 {{ define "main" }}
   {{ $about := site.GetPage "/about" }}
-  <div class="home-page">
-    <section class="home-hero" aria-labelledby="home-title">
-      <div class="home-hero__intro">
-        <p class="status-label">{{ .Params.status | default "SYSTEM ONLINE" }}</p>
-        <h1 id="home-title">{{ site.Title }}</h1>
-        <p class="home-hero__positioning">{{ .Params.heroTitle }}</p>
-        {{ with .Params.heroText }}<p class="home-hero__summary">{{ . }}</p>{{ end }}
-        <nav class="primary-links" aria-label="主要入口">
-          <a href="{{ "projects/" | relURL }}">查看项目</a>
-          <a href="{{ "blog/" | relURL }}">阅读博客</a>
-        </nav>
+  <section class="hero" aria-labelledby="home-title">
+    <div class="hero__top">
+      <div class="hero__avatar">{{ partial "glyph-fan.html" (dict "class" "hero__glyph" "label" "范") }}</div>
+      <div>
+        <h1 id="home-title" class="hero__name">{{ site.Title }}</h1>
       </div>
+    </div>
 
-      <aside class="home-hero__panel" aria-label="当前状态">
-        <p class="system-panel__title">系统状态</p>
-        <dl class="system-rows">
-          {{ with .Params.currentFocus }}
-            <div class="system-row">
-              <dt>方向</dt>
-              <dd>{{ . }}</dd>
-            </div>
-          {{ end }}
-          <div class="system-row">
-            <dt>状态</dt>
-            <dd><span class="status-dot" aria-hidden="true"></span>{{ $.Params.status | default "在线" }}</dd>
-          </div>
-          {{ with $about }}
-            {{ with .Params.skills }}
-              <div class="system-row">
-                <dt>技术栈</dt>
-                <dd>
-                  <ul class="tag-list">
-                    {{ range . }}<li>{{ . }}</li>{{ end }}
-                  </ul>
-                </dd>
-              </div>
-            {{ end }}
-          {{ end }}
-        </dl>
-      </aside>
-    </section>
+    <p class="hero__lead">{{ .Params.heroTitle }}</p>
+    {{ with .Params.heroText }}<p class="hero__text">{{ . }}</p>{{ end }}
 
-    {{ $projects := where (where site.RegularPages "Section" "projects") "Params.featured" true }}
-    {{ $projects = sort $projects "Weight" "asc" }}
-    <section class="home-section" aria-labelledby="featured-projects-title">
-      <div class="section-heading">
-        <p class="section-heading__eyebrow">精选作品</p>
-        <h2 id="featured-projects-title">精选项目</h2>
+    <nav aria-label="主要入口">
+      <ul class="action-links">
+        <li><a href="{{ "projects/" | relURL }}">项目</a></li>
+        <li><a href="{{ "blog/" | relURL }}">博客</a></li>
+        <li><a href="{{ "experience/" | relURL }}">经历</a></li>
+        <li><a href="https://github.com/cnefan31" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+    </nav>
+  </section>
+
+  {{ with $about }}
+    {{ with .Params.skills }}
+      <hr>
+      <section class="section" aria-labelledby="skills-title">
+        <h2 id="skills-title" class="section__title">技术栈</h2>
+        <ul class="pill-list">
+          {{ range . }}<li>{{ . }}</li>{{ end }}
+        </ul>
+      </section>
+    {{ end }}
+  {{ end }}
+
+  {{ $projects := where (where site.RegularPages "Section" "projects") "Params.featured" true }}
+  {{ $projects = sort $projects "Weight" "asc" }}
+  {{ if $projects }}
+    <hr>
+    <section class="section" aria-labelledby="featured-projects-title">
+      <div class="section__head">
+        <h2 id="featured-projects-title" class="section__title">精选项目</h2>
+        <a href="{{ "projects/" | relURL }}">全部项目 →</a>
       </div>
-      {{ if $projects }}
-        <div class="project-grid">
-          {{ range $projects }}{{ partial "card-project.html" . }}{{ end }}
-        </div>
-      {{ else }}
-        <p>暂无精选项目。</p>
-      {{ end }}
-    </section>
-
-    {{ $posts := where (where site.RegularPages "Section" "blog") "Draft" false }}
-    {{ $posts = first 3 (sort $posts "Date" "desc") }}
-    <section class="home-section" aria-labelledby="latest-posts-title">
-      <div class="section-heading">
-        <p class="section-heading__eyebrow">最新动态</p>
-        <h2 id="latest-posts-title">最新文章</h2>
+      <div class="card-grid">
+        {{ range $projects }}{{ partial "card-project.html" . }}{{ end }}
       </div>
-      {{ if $posts }}
-        <div class="post-list">{{ range $posts }}{{ partial "card-post.html" . }}{{ end }}</div>
-      {{ else }}
-        <p>暂无文章。</p>
-      {{ end }}
     </section>
-  </div>
+  {{ end }}
+
+  {{ $posts := where (where site.RegularPages "Section" "blog") "Draft" false }}
+  {{ $posts = first 3 (sort $posts "Date" "desc") }}
+  {{ if $posts }}
+    <hr>
+    <section class="section" aria-labelledby="latest-posts-title">
+      <div class="section__head">
+        <h2 id="latest-posts-title" class="section__title">最新文章</h2>
+        <a href="{{ "blog/" | relURL }}">全部文章 →</a>
+      </div>
+      <div class="card-grid">
+        {{ range $posts }}{{ partial "card-post.html" . }}{{ end }}
+      </div>
+    </section>
+  {{ end }}
 {{ end }}
