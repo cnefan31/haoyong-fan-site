@@ -4,10 +4,29 @@
     {{ with .Params.name }}<p class="about-name">{{ . }}</p>{{ end }}
     {{ with .Params.bio }}<p class="about-bio">{{ . }}</p>{{ end }}
     <div class="prose">{{ .Content }}</div>
-    {{ with .Params.skills }}
+    {{ $skills := .Params.skills }}
+    {{ $industries := .Params.industries }}
+    {{ if or $skills $industries }}
       <section class="skills" aria-labelledby="skills-title">
-        <h2 id="skills-title">技能</h2>
-        <ul class="pill-list">{{ range . }}<li>{{ . }}</li>{{ end }}</ul>
+        <h2 id="skills-title">技术栈与领域</h2>
+        <div class="skill-groups">
+          {{ with $skills }}
+            <div class="skill-group">
+              <p class="skill-group__label">主要语言与数据库</p>
+              <ul class="skill-list">
+                {{ range . }}<li class="skill-item">{{ . }}</li>{{ end }}
+              </ul>
+            </div>
+          {{ end }}
+          {{ with $industries }}
+            <div class="skill-group">
+              <p class="skill-group__label">行业经验</p>
+              <ul class="skill-list">
+                {{ range . }}<li class="skill-item skill-item--domain">{{ . }}</li>{{ end }}
+              </ul>
+            </div>
+          {{ end }}
+        </div>
       </section>
     {{ end }}
   </article>

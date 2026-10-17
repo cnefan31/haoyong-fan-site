@@ -22,13 +22,32 @@
   </section>
 
   {{ with $about }}
-    {{ with .Params.skills }}
+    {{ $skills := .Params.skills }}
+    {{ $industries := .Params.industries }}
+    {{ if or $skills $industries }}
       <hr>
-      <section class="section" aria-labelledby="skills-title">
-        <h2 id="skills-title" class="section__title">技术栈</h2>
-        <ul class="pill-list">
-          {{ range . }}<li>{{ . }}</li>{{ end }}
-        </ul>
+      <section class="section skills-section" aria-labelledby="skills-title">
+        <div class="section__head">
+          <h2 id="skills-title" class="section__title">技术栈与领域</h2>
+        </div>
+        <div class="skill-groups">
+          {{ with $skills }}
+            <div class="skill-group">
+              <p class="skill-group__label">主要语言与数据库</p>
+              <ul class="skill-list">
+                {{ range . }}<li class="skill-item">{{ . }}</li>{{ end }}
+              </ul>
+            </div>
+          {{ end }}
+          {{ with $industries }}
+            <div class="skill-group">
+              <p class="skill-group__label">行业经验</p>
+              <ul class="skill-list">
+                {{ range . }}<li class="skill-item skill-item--domain">{{ . }}</li>{{ end }}
+              </ul>
+            </div>
+          {{ end }}
+        </div>
       </section>
     {{ end }}
   {{ end }}
