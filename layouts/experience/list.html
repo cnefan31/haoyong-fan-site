@@ -19,5 +19,22 @@
         {{ end }}
       </div>
     {{ else }}<p>暂无工作经历。</p>{{ end }}
+
+    {{ with .Params.education }}
+      <h2 class="experience-subtitle">教育背景</h2>
+      <div class="row-list">
+        {{ range . }}
+          <article class="experience-entry">
+            <header class="experience-entry__head">
+              <div>
+                <h2>{{ .school }}</h2>
+                <p class="experience-entry__company">{{ .major }} · {{ .degree }}</p>
+              </div>
+              <p class="experience-entry__period">{{ .period }}</p>
+            </header>
+          </article>
+        {{ end }}
+      </div>
+    {{ end }}
   </section>
 {{ end }}
