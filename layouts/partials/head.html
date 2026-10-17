@@ -1,4 +1,8 @@
+{{- /* Hugo gives the 404 page the English title "404 Page not found"; override it. */ -}}
 {{- $title := .Title | default site.Title -}}
+{{- if eq .Kind "404" -}}
+  {{- $title = printf "页面不存在 | %s" site.Title -}}
+{{- end -}}
 {{- $description := .Description | default site.Params.description -}}
 {{- $image := "/favicon.svg" | absURL -}}
 {{- with .Params.image }}
