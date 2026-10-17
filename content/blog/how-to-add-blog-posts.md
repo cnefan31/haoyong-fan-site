@@ -125,7 +125,6 @@ repository/
 ├── content/
 │   └── blog/               ← 你的 .md 文件放在这里
 │       ├── welcome.md
-│       ├── cloud-native-tips.md
 │       └── my-new-post.md
 └── hugo.toml               ← 站点配置
 ```
