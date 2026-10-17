@@ -1,11 +1,7 @@
-{{ $link := strings.TrimSpace (printf "%v" (.Params.link | default "")) }}
-{{ $external := and $link (or (strings.HasPrefix (lower $link) "https://") (strings.HasPrefix (lower $link) "http://")) }}
-{{ $href := .RelPermalink }}
-{{ if $external }}{{ $href = $link }}{{ end }}
+{{/* Always link to the project's own page; the external repo link lives there. */}}
 <a
   class="project-card"
-  href="{{ $href }}"
-  {{ if $external }}target="_blank" rel="noopener noreferrer"{{ end }}
+  href="{{ .RelPermalink }}"
   aria-label="{{ .Title }}"
 >
   <div class="card__meta">
