@@ -1,7 +1,6 @@
 {{ define "main" }}
   <article class="page page--entry">
     {{ partial "page-heading.html" . }}
-    {{ with .Params.description }}<p class="about-bio">{{ . }}</p>{{ end }}
     <div class="prose">{{ .Content }}</div>
     {{ with .Params.technologies }}<ul class="pill-list" aria-label="技术栈">{{ range . }}<li>{{ . }}</li>{{ end }}</ul>{{ end }}
     {{ $link := strings.TrimSpace (printf "%v" (.Params.link | default "")) }}

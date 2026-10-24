@@ -935,6 +935,12 @@ a:hover {
   color: var(--color-accent);
 }
 
+/* Keep the label column on one line; wide tables scroll horizontally on narrow screens. */
+.prose th:first-child,
+.prose td:first-child {
+  white-space: nowrap;
+}
+
 /* ---------- Post ---------- */
 .post-header {
   max-width: 68ch;
