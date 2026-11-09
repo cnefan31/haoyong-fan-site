@@ -917,11 +917,18 @@ a:hover {
   overflow-wrap: normal;
 }
 
-.prose table {
-  display: block;
+/* Wrapper comes from layouts/_markup/render-table.html. Table keeps its own layout and
+   wraps long code inside cells; the wrapper holds wide tables and scrolls if one overflows. */
+.prose .table-wrap {
   max-width: 100%;
-  border-collapse: collapse;
+  margin: 1.5em 0;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
 .prose th,
@@ -929,16 +936,20 @@ a:hover {
   padding: 0.6rem 0.8rem;
   border: 1px solid var(--color-border);
   text-align: left;
+  overflow-wrap: break-word;
 }
 
 .prose th {
   color: var(--color-accent);
 }
 
-/* Keep the label column on one line; wide tables scroll horizontally on narrow screens. */
-.prose th:first-child,
-.prose td:first-child {
-  white-space: nowrap;
+/* Column alignment from Markdown colons, emitted by the table render hook. */
+.prose .align-center {
+  text-align: center;
+}
+
+.prose .align-right {
+  text-align: right;
 }
 
 /* ---------- Post ---------- */
