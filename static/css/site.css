@@ -943,6 +943,14 @@ a:hover {
   color: var(--color-accent);
 }
 
+/* On phones a 3+ column table squeezes to a few characters per line; keep a readable
+   minimum for those and let .table-wrap scroll. Two-column tables still fit. */
+@media (max-width: 640px) {
+  .prose table:has(> * > tr > *:nth-child(3)) {
+    min-width: 32rem;
+  }
+}
+
 /* Column alignment from Markdown colons, emitted by the table render hook. */
 .prose .align-center {
   text-align: center;
