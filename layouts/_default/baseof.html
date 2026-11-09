@@ -24,6 +24,6 @@
 
     {{ partial "footer.html" . }}
     {{ partial "scroll-top.html" . }}
-    <script src="{{ "js/site.js" | relURL }}" defer></script>
+    <script src="{{ "js/site.js" | relURL }}?v={{ os.ReadFile "static/js/site.js" | crypto.MD5 }}" defer></script>
   </body>
 </html>
