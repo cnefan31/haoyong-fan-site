@@ -949,6 +949,12 @@ a:hover {
   .prose table:has(> * > tr > *:nth-child(3)) {
     min-width: 32rem;
   }
+
+  /* Inside a scrolling table the label column can keep its full width without
+     squeezing the remaining columns. */
+  .prose table:has(> * > tr > *:nth-child(3)) > * > tr > :first-child {
+    white-space: nowrap;
+  }
 }
 
 /* Column alignment from Markdown colons, emitted by the table render hook. */
